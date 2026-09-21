@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
-<title>壁炉 HEARTH</title>
+<title>Anima</title>
 
 <!-- PWA / iOS -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -18,7 +18,7 @@
 <meta name="theme-color" content="#F4F4F5">
 <!-- iOS launch mode is manifest-only; legacy Apple fullscreen meta breaks bottom viewport. -->
 
-<meta name="apple-mobile-web-app-title" content="壁炉 HEARTH">
+<meta name="apple-mobile-web-app-title" content="Anima">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
 
@@ -111,7 +111,7 @@
     --call-hangup-bg: #cf8d92;
     --call-hangup-shadow: rgba(176,96,104,.34);
   }
-  /* ── HARBOR · 海港(通用开源主题 / Tidal Echo) ── 中性冷调,供 fork 使用;只覆盖带色相变量,其余继承 PEARL TIDE */
+  /* ── ANIMA · 灵魂(通用开源主题) ── 中性冷调,供 fork 使用;只覆盖带色相变量,其余继承 PEARL TIDE */
   :root[data-theme="harbor"]{
       --wall-default: var(--wall-harbor);
       --menu-wall-default: var(--menu-wall-harbor);
@@ -2065,7 +2065,7 @@
 
       <!-- hero -->
       <div class="menu-hero">
-        <h1 class="menu-title">壁炉 HEARTH</h1>
+        <h1 class="menu-title">Anima</h1>
         <p class="menu-since">since 2026/01/01</p>
         <div class="menu-days"><span class="num" id="menuDays">113</span><span class="lab">Days together</span></div>
       </div>
@@ -2220,7 +2220,7 @@
 
 <script>
 /* ════════════════════════════════════════════════════════════════
-   Tidal Echo — PWA chat shell (open source)
+   Anima — PWA chat shell
    A private 1:1 chat front-end for a person and their AI companion,
    talking to a self-hosted relay backend. No domain or secret is baked in.
    Backend contract: GET /app/history · SSE /app/stream · POST /app/send · /healthz
@@ -2228,7 +2228,7 @@
 
 /* ── identity / branding — the ONE place to set names + app title ── */
 const CONFIG = {
-  APP_NAME:   "壁炉 HEARTH",  // app + menu title (and manifest, set there too)
+  APP_NAME:   "Anima",  // app + menu title (and manifest, set there too)
   AI_NAME:    "顾淮",       // your AI companion's display name (header / call / push / narration)
   HUMAN_NAME: "小宝",           // how you're referred to in narration (rarely shown)
   SINCE:      "2026/07/24",   // "together since" date YYYY/MM/DD for the menu counter ("" hides it)
