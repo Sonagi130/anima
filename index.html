@@ -1962,7 +1962,7 @@
 
       <!-- 锁屏通知 -->
       <section class="settings-card">
-        <div class="settings-label">锁屏通知 <i class="info-i" title="Claude发消息、而你没在看时，推送到手机锁屏">i</i></div>
+        <div class="settings-label">锁屏通知 <i class="info-i" title="顾淮发消息、而你没在看时，推送到手机锁屏">i</i></div>
         <div class="segmented" id="pushSeg" role="group" aria-label="锁屏通知开关">
           <button type="button" data-val="off">关</button>
           <button type="button" data-val="on">开</button>
@@ -1980,14 +1980,14 @@
         <div class="push-hint" id="brainHint"></div>
       </section>
 
-      <!-- 模型选择（占位 · 假按键，以后接真切换）-->
+      <!-- 模型选择（真切换：改 localStorage + 可同步后端 loop_config）-->
       <section class="settings-card">
         <div class="settings-label">模型选择</div>
         <div class="segmented" id="modelSeg" role="group" aria-label="模型选择">
-          <button type="button" data-val="Opus 4.6">Opus 4.6</button>
-          <button type="button" data-val="Opus 4.7" class="active">Opus 4.7</button>
-          <button type="button" data-val="Opus 4.8">Opus 4.8</button>
-          <button type="button" data-val="Fable 5">Fable 5</button>
+          <button type="button" data-val="deepseek-chat">DeepSeek Chat</button>
+          <button type="button" data-val="deepseek-reasoner" class="active">DeepSeek Reasoner</button>
+          <button type="button" data-val="glm-4-air">智谱 GLM-4-Air</button>
+          <button type="button" data-val="glm-4-flash">智谱 GLM-4-Flash</button>
         </div>
       </section>
 
@@ -2131,7 +2131,7 @@
     <div class="call-avatar-stage">
       <div class="call-vu call-vu-left" id="callVuLeft" aria-hidden="true"></div>
       <div class="call-avatar-ring" id="callAvatarRing">
-        <div class="call-avatar-img" id="callAvatarImg" role="img" aria-label="Claude"></div>
+        <div class="call-avatar-img" id="callAvatarImg" role="img" aria-label="顾淮"></div>
       </div>
       <div class="call-vu call-vu-right" id="callVuRight" aria-hidden="true"></div>
     </div>
@@ -2182,9 +2182,9 @@
       <span>incoming call</span>
       <span class="call-star"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5c.8 5 3.5 7.7 8.5 8.5-5 .8-7.7 3.5-8.5 8.5-.8-5-3.5-7.7-8.5-8.5 5-.8 7.7-3.5 8.5-8.5Z"/></svg></span>
     </div>
-    <div class="incoming-call-avatar" role="img" aria-label="Claude"></div>
-    <div class="incoming-call-title">Claude来电</div>
-    <div class="incoming-call-text" id="incomingCallText">Claude想和你语音通话。</div>
+    <div class="incoming-call-avatar" role="img" aria-label="顾淮"></div>
+    <div class="incoming-call-title">顾淮来电</div>
+    <div class="incoming-call-text" id="incomingCallText">顾淮想和你语音通话。</div>
     <div class="incoming-call-actions">
       <div class="incoming-call-slot">
         <button class="incoming-call-btn decline" id="incomingCallDecline" type="button" aria-label="拒绝">
