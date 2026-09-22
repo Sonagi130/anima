@@ -1052,6 +1052,12 @@
     letter-spacing:0; white-space:nowrap; cursor:pointer;
     transition: background .22s ease, color .22s ease, box-shadow .22s ease;
   }
+  /* custom model box */
+  .custom-model{ margin-top:12px; padding:12px; background:var(--card-bg,#fff); border:1px solid var(--hairline); border-radius:12px; display:flex; flex-direction:column; gap:8px; }
+  .cm-input{ width:100%; padding:9px 11px; border:1px solid var(--hairline); border-radius:8px; background:var(--input-bg,transparent); color:inherit; font-size:13px; box-sizing:border-box; }
+  .cm-input:focus{ outline:none; border-color:var(--accent,#4a7dff); }
+  .cm-save{ padding:9px; border:none; border-radius:8px; background:var(--accent,#4a7dff); color:#fff; font-size:13px; font-weight:600; cursor:pointer; }
+  .cm-save:active{ opacity:.8; }
   .segmented button.active{
     background: var(--seg-thumb); color: var(--text);
     box-shadow: var(--seg-thumb-shadow); font-weight:500;
@@ -1980,14 +1986,21 @@
         <div class="push-hint" id="brainHint"></div>
       </section>
 
-      <!-- 模型选择（真切换：改 localStorage + 可同步后端 loop_config）-->
+      <!-- 模型选择（真切换：改后端 loop_config）-->
       <section class="settings-card">
         <div class="settings-label">模型选择</div>
         <div class="segmented" id="modelSeg" role="group" aria-label="模型选择">
-          <button type="button" data-val="deepseek-chat">DeepSeek Chat</button>
-          <button type="button" data-val="deepseek-reasoner" class="active">DeepSeek Reasoner</button>
-          <button type="button" data-val="glm-4-air">智谱 GLM-4-Air</button>
-          <button type="button" data-val="glm-4-flash">智谱 GLM-4-Flash</button>
+          <button type="button" data-val="deepseek-chat">DS Chat</button>
+          <button type="button" data-val="deepseek-reasoner" class="active">DS R1</button>
+          <button type="button" data-val="glm-4-air">GLM-Air</button>
+          <button type="button" data-val="glm-4-flash">GLM-Flash</button>
+          <button type="button" data-val="__custom__">自定义</button>
+        </div>
+        <div id="customModelBox" class="custom-model" style="display:none">
+          <input id="cmUrl" class="cm-input" type="text" placeholder="API地址 如 https://api.deepseek.com/v1">
+          <input id="cmKey" class="cm-input" type="password" placeholder="API Key">
+          <input id="cmModel" class="cm-input" type="text" placeholder="模型名 如 deepseek-chat">
+          <button class="cm-save" id="cmSave" type="button">保存并切换</button>
         </div>
       </section>
 
@@ -3151,7 +3164,66 @@ function wireSegmented(seg, storeKey){
     try{ localStorage.setItem(storeKey, b.dataset.val); }catch(_){}
   });
 }
-wireSegmented(modelSeg, "companion_pick_model");
+/* 模型选择 —— 真切换：直接调后端 loop_config，让大脑立刻换模型 */
+const PRESET_MODELS = {
+  "deepseek-chat":      { url: "https://api.deepseek.com/v1", label: "DS Chat" },
+  "deepseek-reasoner":  { url: "https://api.deepseek.com/v1", label: "DS R1" },
+  "glm-4-air":          { url: "https://open.bigmodel.cn/api/paas/v4", label: "GLM-Air" },
+  "glm-4-flash":        { url: "https://open.bigmodel.cn/api/paas/v4", label: "GLM-Flash" },
+};
+const customModelBox = $("#customModelBox"), cmUrl = $("#cmUrl"), cmKey = $("#cmKey"), cmModel = $("#cmModel"), cmSave = $("#cmSave");
+async function switchModel(model){
+  const key = localStorage.getItem("companion_model_key_" + model) || "";
+  const preset = PRESET_MODELS[model];
+  if (!preset) return;
+  try{
+    const r = await fetch(`${API_BASE}/app/loop_config`, {
+      method: "POST",
+      headers: { ...authHeaders(), "Content-Type": "application/json" },
+      body: JSON.stringify({ main_chain: [{ model, url: preset.url, key }] })
+    });
+    if (!r.ok) throw new Error("loop_config " + r.status);
+    localStorage.setItem("companion_pick_model", model);
+    showToast("已切到 " + preset.label);
+  }catch(_){
+    showToast("切换失败：请确认密钥已配置");
+  }
+}
+if (modelSeg){
+  modelSeg.addEventListener("click", async (e) => {
+    const b = e.target.closest("button[data-val]");
+    if (!b) return;
+    if (b.dataset.val === "__custom__"){
+      customModelBox.style.display = customModelBox.style.display === "none" ? "flex" : "none";
+      return;
+    }
+    modelSeg.querySelectorAll("button").forEach(x => x.classList.toggle("active", x === b));
+    await switchModel(b.dataset.val);
+  });
+}
+if (cmSave){
+  cmSave.addEventListener("click", async () => {
+    const url = (cmUrl.value || "").trim().replace(/\/+$/, "");
+    const key = (cmKey.value || "").trim();
+    const model = (cmModel.value || "").trim();
+    if (!url || !key || !model){ showToast("三项都要填"); return; }
+    try{
+      const r = await fetch(`${API_BASE}/app/loop_config`, {
+        method: "POST",
+        headers: { ...authHeaders(), "Content-Type": "application/json" },
+        body: JSON.stringify({ main_chain: [{ model, url, key }] })
+      });
+      if (!r.ok) throw new Error("loop_config " + r.status);
+      localStorage.setItem("companion_pick_model", model);
+      localStorage.setItem("companion_model_key_" + model, key);
+      showToast("已切换：" + model);
+      customModelBox.style.display = "none";
+      cmUrl.value = cmKey.value = cmModel.value = "";
+    }catch(_){
+      showToast("保存失败");
+    }
+  });
+}
 wireSegmented(effortSeg, "companion_pick_effort");
 
 if (contextSlider){
@@ -3166,6 +3238,21 @@ function setBrainUi(target){
   if (brainHint) brainHint.textContent = t === "loop"
     ? "现在由服务器 API loop 接消息"
     : "现在由 顾淮 channel 接消息";
+}
+async function cacheLoopKeys(){
+  if (USE_MOCK || !secret) return;
+  try{
+    const r = await fetch(`${API_BASE}/app/loop_config`, { headers: authHeaders() });
+    if (!r.ok) return;
+    const d = await r.json();
+    const chain = d.main_chain || [];
+    chain.forEach((row, i) => {
+      if (row.model && row.key_masked){
+        // key_masked 只有部分，真正 key 拿不到——但至少记住有哪些模型可用
+        localStorage.setItem("companion_loop_models", JSON.stringify(chain.map(x => x.model)));
+      }
+    });
+  }catch(_){}
 }
 async function loadBrain(){
   if (USE_MOCK || !secret){ setBrainUi("desktop"); return; }
@@ -5619,6 +5706,7 @@ async function init(){
   if (!secret){ showLogin(); return; }
   await loadSessions();
   loadBrain();
+  cacheLoopKeys();
   let showedCache = false;
   const cached = await readCachedMessages();
   if (cached.length){
