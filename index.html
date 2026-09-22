@@ -1054,6 +1054,7 @@
   }
   /* custom model box */
   .custom-model{ margin-top:12px; padding:12px; background:var(--card-bg,#fff); border:1px solid var(--hairline); border-radius:12px; display:flex; flex-direction:column; gap:8px; }
+  .cm-title{ font-size:13px; font-weight:600; color:inherit; margin-bottom:2px; }
   .cm-input{ width:100%; padding:9px 11px; border:1px solid var(--hairline); border-radius:8px; background:var(--input-bg,transparent); color:inherit; font-size:13px; box-sizing:border-box; }
   .cm-input:focus{ outline:none; border-color:var(--accent,#4a7dff); }
   .cm-save{ padding:9px; border:none; border-radius:8px; background:var(--accent,#4a7dff); color:#fff; font-size:13px; font-weight:600; cursor:pointer; }
@@ -1990,63 +1991,31 @@
       <section class="settings-card">
         <div class="settings-label">模型选择</div>
         <div class="segmented" id="modelSeg" role="group" aria-label="模型选择">
-          <button type="button" data-val="deepseek-chat">DS Chat</button>
-          <button type="button" data-val="deepseek-reasoner" class="active">DS R1</button>
-          <button type="button" data-val="glm-4-air">GLM-Air</button>
-          <button type="button" data-val="glm-4-flash">GLM-Flash</button>
+          <button type="button" data-val="deepseek-flash">DS Flash</button>
+          <button type="button" data-val="glm">GLM</button>
           <button type="button" data-val="__custom__">自定义</button>
         </div>
-        <div id="customModelBox" class="custom-model" style="display:none">
-          <input id="cmUrl" class="cm-input" type="text" placeholder="API地址 如 https://api.deepseek.com/v1">
+        <div id="modelConfigBox" class="custom-model" style="display:none">
+          <div class="cm-title" id="cmTitle">配置模型</div>
+          <input id="cmUrl" class="cm-input" type="text" placeholder="API地址（中转站填中转地址）">
           <input id="cmKey" class="cm-input" type="password" placeholder="API Key">
-          <input id="cmModel" class="cm-input" type="text" placeholder="模型名 如 deepseek-chat">
+          <input id="cmModel" class="cm-input" type="text" placeholder="模型名（如 deepseek-flash / glm-4.6）">
           <button class="cm-save" id="cmSave" type="button">保存并切换</button>
         </div>
       </section>
 
-      <!-- effort（占位 · 假按键）-->
-      <section class="settings-card">
-        <div class="settings-label">effort <i class="info-i" title="推理强度：越高越细，耗时越长">i</i></div>
-        <div class="segmented" id="effortSeg" role="group" aria-label="effort">
-          <button type="button" data-val="low">low</button>
-          <button type="button" data-val="medium">medium</button>
-          <button type="button" data-val="high">high</button>
-          <button type="button" data-val="xhigh" class="active">xhigh</button>
-          <button type="button" data-val="max">max</button>
-        </div>
-      </section>
 
-      <!-- 上下文阈值（占位 · 假按键）-->
+      <!-- 上下文记忆条数（接后端 history_n，真生效）-->
       <section class="settings-card">
-        <div class="settings-label">上下文阈值 <i class="info-i" title="上下文阈值：保留多少 / 满多少触发">i</i></div>
+        <div class="settings-label">上下文记忆 <i class="info-i" title="每次回复带上多少条历史消息，越多越连贯、越费token">i</i></div>
         <div class="context-slider-wrap">
-          <input class="context-slider" id="contextSlider" type="range" min="0" max="100" value="40" aria-label="上下文阈值">
-          <div class="context-scale"><span>保留60k</span><span>满200k触发</span></div>
+          <input class="context-slider" id="contextSlider" type="range" min="0" max="200" value="24" aria-label="上下文记忆条数">
+          <div class="context-scale"><span id="ctxVal">24条</span><span>0 / 200</span></div>
         </div>
       </section>
 
-      <!-- reset（占位 · 假按键）-->
-      <button class="action-row" id="resetRow" type="button">
-        <span class="action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 2.6-6.4L3 8"/><path d="M3 3v5h5"/></svg></span>
-        <span class="action-name">reset</span>
-        <span class="action-value">点击后开启新窗口</span>
-        <span class="action-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
-      </button>
 
-      <!-- swap（占位 · 假按键）-->
-      <button class="action-row" id="swapRow" type="button">
-        <span class="action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4 3 8l4 4"/><path d="M3 8h13a4 4 0 0 1 4 4"/><path d="m17 20 4-4-4-4"/><path d="M21 16H8a4 4 0 0 1-4-4"/></svg></span>
-        <span class="action-name">swap</span>
-        <span class="action-value">切换至上一个 resume</span>
-        <span class="action-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
-      </button>
 
-      <button class="action-row hidden" id="resumeRow" type="button">
-        <span class="action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 13.7-5.7"/><path d="M18 3v4h-4"/><path d="M20 12a8 8 0 0 1-13.7 5.7"/><path d="M6 21v-4h4"/></svg></span>
-        <span class="action-name">resume</span>
-        <span class="action-value">继续 pending task</span>
-        <span class="action-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
-      </button>
 
       <!-- status -->
       <div class="action-row status">
@@ -2293,8 +2262,8 @@ const peerNameEl = $("#peerName"), profilePanel = $("#profilePanel");
 const profileClose = $("#profileClose"), moreBtn = $("#moreBtn");
 const profileAvatarBtn = $("#profileAvatarBtn"), profileNameEl = $("#profileName");
 const profileNameInput = $("#profileNameInput"), profileNameEdit = $("#profileNameEdit");
-const modelSeg = $("#modelSeg"), effortSeg = $("#effortSeg"), contextSlider = $("#contextSlider");
-const resetRow = $("#resetRow"), swapRow = $("#swapRow"), resumeRow = $("#resumeRow");
+const modelSeg = $("#modelSeg"), contextSlider = $("#contextSlider");
+
 const statusCopy = $("#statusCopy"), statusSidEl = $("#statusSid"), statusUsedEl = $("#statusUsed");
 const sessionBtn = $("#sessionBtn"), sessionPop = $("#sessionPop"), sessionList = $("#sessionList"), sessionNewBtn = $("#sessionNewBtn");
 const terminalBtn = $("#terminalBtn"), terminalPanel = $("#terminalPanel"), terminalBack = $("#terminalBack"), terminalLog = $("#terminalLog"), terminalForm = $("#terminalForm"), terminalInput = $("#terminalInput"), terminalSession = $("#terminalSession");
@@ -3166,39 +3135,57 @@ function wireSegmented(seg, storeKey){
 }
 /* 模型选择 —— 真切换：直接调后端 loop_config，让大脑立刻换模型 */
 const PRESET_MODELS = {
-  "deepseek-chat":      { url: "https://api.deepseek.com/v1", label: "DS Chat" },
-  "deepseek-reasoner":  { url: "https://api.deepseek.com/v1", label: "DS R1" },
-  "glm-4-air":          { url: "https://open.bigmodel.cn/api/paas/v4", label: "GLM-Air" },
-  "glm-4-flash":        { url: "https://open.bigmodel.cn/api/paas/v4", label: "GLM-Flash" },
+  "deepseek-flash": { url: "https://api.deepseek.com/v1", model: "deepseek-flash", label: "DS Flash" },
+  "glm":            { url: "https://open.bigmodel.cn/api/paas/v4", model: "glm-4.6",      label: "GLM" },
 };
-const customModelBox = $("#customModelBox"), cmUrl = $("#cmUrl"), cmKey = $("#cmKey"), cmModel = $("#cmModel"), cmSave = $("#cmSave");
-async function switchModel(model){
-  const key = localStorage.getItem("companion_model_key_" + model) || "";
-  const preset = PRESET_MODELS[model];
-  if (!preset) return;
+const modelConfigBox = $("#modelConfigBox"), cmUrl = $("#cmUrl"), cmKey = $("#cmKey"), cmModel = $("#cmModel"), cmSave = $("#cmSave"), cmTitle = $("#cmTitle");
+let pendingModel = "";  // 当前正在配置的预设键或 __custom__
+function savedModelConf(key){
+  try{ return JSON.parse(localStorage.getItem("model_conf_" + key) || "null"); }catch(_){ return null; }
+}
+function saveModelConf(key, conf){ localStorage.setItem("model_conf_" + key, JSON.stringify(conf)); }
+function openConfigBox(key){
+  pendingModel = key;
+  const conf = savedModelConf(key);
+  const preset = PRESET_MODELS[key];
+  cmTitle.textContent = key === "__custom__" ? "自定义模型" : (preset ? "配置 " + preset.label : "配置模型");
+  cmUrl.value = (conf && conf.url) || (preset ? preset.url : "");
+  cmKey.value = (conf && conf.key) || "";
+  cmModel.value = (conf && conf.model) || (preset ? preset.model : "");
+  modelConfigBox.style.display = "flex";
+}
+async function applyModel(key, conf){
   try{
     const r = await fetch(`${API_BASE}/app/loop_config`, {
       method: "POST",
       headers: { ...authHeaders(), "Content-Type": "application/json" },
-      body: JSON.stringify({ main_chain: [{ model, url: preset.url, key }] })
+      body: JSON.stringify({ main_chain: [{ model: conf.model, url: conf.url, key: conf.key }] })
     });
     if (!r.ok) throw new Error("loop_config " + r.status);
-    localStorage.setItem("companion_pick_model", model);
-    showToast("已切到 " + preset.label);
+    saveModelConf(key, conf);
+    localStorage.setItem("companion_pick_model", key);
+    showToast("已切到 " + (PRESET_MODELS[key] ? PRESET_MODELS[key].label : conf.model));
   }catch(_){
-    showToast("切换失败：请确认密钥已配置");
+    showToast("切换失败：请检查地址和 Key");
+    throw _;
   }
 }
 if (modelSeg){
   modelSeg.addEventListener("click", async (e) => {
     const b = e.target.closest("button[data-val]");
     if (!b) return;
-    if (b.dataset.val === "__custom__"){
-      customModelBox.style.display = customModelBox.style.display === "none" ? "flex" : "none";
+    const key = b.dataset.val;
+    if (key === "__custom__"){
+      openConfigBox("__custom__");
+      return;
+    }
+    const conf = savedModelConf(key);
+    if (!conf){
+      openConfigBox(key);  // 没配过 → 先配置
       return;
     }
     modelSeg.querySelectorAll("button").forEach(x => x.classList.toggle("active", x === b));
-    await switchModel(b.dataset.val);
+    await applyModel(key, conf);
   });
 }
 if (cmSave){
@@ -3207,29 +3194,45 @@ if (cmSave){
     const key = (cmKey.value || "").trim();
     const model = (cmModel.value || "").trim();
     if (!url || !key || !model){ showToast("三项都要填"); return; }
+    const conf = { url, key, model };
     try{
-      const r = await fetch(`${API_BASE}/app/loop_config`, {
-        method: "POST",
-        headers: { ...authHeaders(), "Content-Type": "application/json" },
-        body: JSON.stringify({ main_chain: [{ model, url, key }] })
-      });
-      if (!r.ok) throw new Error("loop_config " + r.status);
-      localStorage.setItem("companion_pick_model", model);
-      localStorage.setItem("companion_model_key_" + model, key);
-      showToast("已切换：" + model);
-      customModelBox.style.display = "none";
+      await applyModel(pendingModel, conf);
+      modelConfigBox.style.display = "none";
+      if (pendingModel !== "__custom__"){
+        modelSeg.querySelectorAll("button").forEach(x => x.classList.toggle("active", x.dataset.val === pendingModel));
+      }
       cmUrl.value = cmKey.value = cmModel.value = "";
-    }catch(_){
-      showToast("保存失败");
-    }
+      pendingModel = "";
+    }catch(_){}
   });
 }
-wireSegmented(effortSeg, "companion_pick_effort");
+
 
 if (contextSlider){
   const savedContext = localStorage.getItem("companion_pick_context");
-  if (savedContext !== null && savedContext !== "") contextSlider.value = savedContext;
-  contextSlider.addEventListener("input", () => { try{ localStorage.setItem("companion_pick_context", contextSlider.value); }catch(_){} });
+  if (savedContext !== null && savedContext !== ""){
+    const n = parseInt(savedContext, 10);
+    if (!isNaN(n)) contextSlider.value = Math.max(0, Math.min(200, n));
+  }
+  const ctxVal = document.getElementById("ctxVal");
+  function syncCtxLabel(){ if (ctxVal) ctxVal.textContent = contextSlider.value + "条"; }
+  syncCtxLabel();
+  let ctxTimer = null;
+  contextSlider.addEventListener("input", () => {
+    syncCtxLabel();
+    if (ctxTimer) clearTimeout(ctxTimer);
+    ctxTimer = setTimeout(async () => {
+      try{
+        const r = await fetch(`${API_BASE}/app/loop_config`, {
+          method: "POST",
+          headers: { ...authHeaders(), "Content-Type": "application/json" },
+          body: JSON.stringify({ history_n: parseInt(contextSlider.value, 10) || 0 })
+        });
+        if (!r.ok) throw new Error("loop_config " + r.status);
+        localStorage.setItem("companion_pick_context", String(contextSlider.value));
+      }catch(_){ showToast("上下文设置保存失败"); }
+    }, 500);
+  });
 }
 
 function setBrainUi(target){
@@ -3303,14 +3306,12 @@ function applyContextStatus(s){
     if (statusUsedEl) statusUsedEl.textContent = "context status unknown";
     if (statusSidEl){ statusSidEl.textContent = "sid: (none)"; statusSidEl.dataset.sid = ""; }
     pendingContextSid = "";
-    if (resumeRow) resumeRow.classList.add("hidden");
     return;
   }
   const usage = Number(s.usage_tokens || 0);
   const threshold = String(s.threshold_k || "200k");
   const pending = s.pending && s.pending.new_sid;
   pendingContextSid = pending || "";
-  if (resumeRow) resumeRow.classList.toggle("hidden", !pendingContextSid);
   if (statusUsedEl){
     statusUsedEl.textContent = `${formatK(usage)} / ${threshold}${pending ? " · pending" : ""}`;
   }
@@ -3327,38 +3328,6 @@ async function apiContextStatus(){
 async function refreshContextStatus(){
   try{ applyContextStatus(await apiContextStatus()); }catch(_){}
 }
-async function apiContextAction(action, payload = {}){
-  // Placeholder: no context-control backend in the open relay — these settings are demo-only.
-  return { ok:true, command:{ action, payload } };
-}
-
-if (resetRow) resetRow.addEventListener("click", async () => {
-  if (!window.confirm("确认 reset？这会开启一个全新窗口。")) return;
-  try{
-    await apiContextAction("reset");
-    showToast("reset 已记录");
-    setTimeout(refreshContextStatus, 1200);
-  }catch(_){ showToast("reset 发送失败"); }
-});
-if (swapRow)  swapRow.addEventListener("click", async () => {
-  if (!window.confirm("确认 swap？会保留尾部上下文并重启当前窗口。")) return;
-  try{
-    await apiContextAction("swap");
-    showToast("swap 已记录");
-    setTimeout(refreshContextStatus, 1200);
-  }catch(_){ showToast("swap 发送失败"); }
-});
-if (resumeRow) resumeRow.addEventListener("click", async () => {
-  const sid = pendingContextSid || (statusSidEl && statusSidEl.dataset.sid) || "";
-  if (!sid){ showToast("没有 pending task"); return; }
-  if (!window.confirm("确认 resume pending task？这会重启当前窗口。")) return;
-  try{
-    await apiContextAction("resume", { sid });
-    showToast("resume 已记录");
-    setTimeout(refreshContextStatus, 1200);
-  }catch(_){ showToast("resume 发送失败"); }
-});
-
 if (statusCopy) statusCopy.addEventListener("click", async () => {
   const sid = (statusSidEl && statusSidEl.dataset.sid ? statusSidEl.dataset.sid : (statusSidEl ? statusSidEl.textContent : "").replace(/^sid:\s*/, "").trim());
   try{
