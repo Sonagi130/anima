@@ -3180,6 +3180,8 @@ if (modelSeg){
     const b = e.target.closest("button[data-val]");
     if (!b) return;
     const key = b.dataset.val;
+    // 点谁谁亮：先给视觉反馈，再走流程
+    modelSeg.querySelectorAll("button").forEach(x => x.classList.toggle("active", x === b));
     if (key === "__custom__"){
       openConfigBox("__custom__");
       return;
@@ -3189,7 +3191,6 @@ if (modelSeg){
       openConfigBox(key);  // 没配过 → 先配置
       return;
     }
-    modelSeg.querySelectorAll("button").forEach(x => x.classList.toggle("active", x === b));
     await applyModel(key, conf);
   });
 }
@@ -3203,9 +3204,7 @@ if (cmSave){
     try{
       await applyModel(pendingModel, conf);
       modelConfigBox.style.display = "none";
-      if (pendingModel !== "__custom__"){
-        modelSeg.querySelectorAll("button").forEach(x => x.classList.toggle("active", x.dataset.val === pendingModel));
-      }
+      modelSeg.querySelectorAll("button").forEach(x => x.classList.toggle("active", x.dataset.val === pendingModel));
       cmUrl.value = cmKey.value = cmModel.value = "";
       pendingModel = "";
     }catch(_){}
