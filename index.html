@@ -1060,8 +1060,8 @@
   .cm-save{ padding:9px; border:none; border-radius:8px; background:var(--accent,#4a7dff); color:#fff; font-size:13px; font-weight:600; cursor:pointer; }
   .cm-save:active{ opacity:.8; }
   .segmented button.active{
-    background: var(--seg-thumb); color: var(--text);
-    box-shadow: var(--seg-thumb-shadow); font-weight:500;
+    background: var(--accent, #4C6378); color: var(--accent-fg, #fff);
+    box-shadow: 0 2px 10px rgba(0,0,0,.14); font-weight:600;
   }
 
   /* context slider */
@@ -3171,6 +3171,11 @@ async function applyModel(key, conf){
   }
 }
 if (modelSeg){
+  // 恢复上次选中的模型高亮
+  (function restoreModelHighlight(){
+    const saved = localStorage.getItem("companion_pick_model");
+    if (saved) modelSeg.querySelectorAll("button").forEach(x => x.classList.toggle("active", x.dataset.val === saved));
+  })();
   modelSeg.addEventListener("click", async (e) => {
     const b = e.target.closest("button[data-val]");
     if (!b) return;
