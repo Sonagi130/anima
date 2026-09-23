@@ -1417,6 +1417,157 @@
     max-width:100%; white-space:nowrap;
   }
 
+  /* ── Learn (专注学习 · Desk → 学习,番茄钟 + 热力图) ── */
+  .learn-panel{
+    position: fixed; inset: 0; z-index: 196;
+    pointer-events: none;
+    transform: translateX(100%);
+    opacity: 0;
+    transition: transform .34s var(--ease-soft), opacity .26s ease;
+  }
+  .learn-panel.open{ transform: none; opacity: 1; pointer-events: auto; }
+  .learn-page{
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    background-color: var(--bg);
+    background-image: var(--wall-default);
+    background-size: cover; background-position: center;
+    overflow: hidden;
+  }
+  .learn-page::before{
+    content:""; position:absolute; inset:0; background: var(--scrim); pointer-events:none;
+  }
+  .learn-topbar{
+    position: relative; z-index:1;
+    flex: 0 0 auto;
+    display:flex; align-items:center; gap:10px;
+    height: calc(56px + env(safe-area-inset-top));
+    padding: env(safe-area-inset-top) var(--side-pad) 0;
+  }
+  .learn-back{
+    width:40px; height:40px; flex:none;
+    border:0; border-radius:50%; padding:0; margin-left:-6px;
+    background: transparent; color: var(--text);
+    display:grid; place-items:center; cursor:pointer;
+    transition: transform .15s ease;
+  }
+  .learn-back:active{ transform: scale(.9); }
+  .learn-back svg{ width:24px; height:24px; display:block; }
+  .learn-title{
+    font-family: var(--font-en), var(--font-cn);
+    font-size: clamp(15px, 4vw, 18px); letter-spacing:.06em; color: var(--text);
+  }
+  .learn-scroll{
+    position: relative; z-index:1;
+    flex: 1 1 auto; overflow-y: auto;
+    -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+    padding: clamp(18px, 5vw, 30px) var(--side-pad) calc(36px + env(safe-area-inset-bottom));
+    display:flex; flex-direction:column; gap: clamp(22px, 6vw, 34px);
+  }
+  .learn-scroll::-webkit-scrollbar{ width:0; height:0; }
+  .learn-card{
+    background: var(--card-bg);
+    border:1px solid var(--card-line);
+    border-radius:20px;
+    box-shadow: var(--card-shadow);
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    padding: clamp(18px, 4.5vw, 26px);
+  }
+  .learn-card-h{
+    font-family: var(--font-cn);
+    font-size: clamp(15px, 4vw, 17px); font-weight:600; color: var(--text);
+    margin: 0 0 clamp(14px, 3.5vw, 20px);
+    display:flex; align-items:center; gap:8px;
+  }
+  .learn-actions{
+    display:flex; gap: clamp(12px, 3.5vw, 16px);
+  }
+  .learn-action{
+    flex:1;
+    display:flex; flex-direction:column; align-items:center; gap: clamp(9px, 2.4vw, 13px);
+    padding: clamp(16px, 4.5vw, 24px) clamp(10px, 3vw, 16px);
+    border:1px solid var(--card-line); border-radius:18px;
+    background: var(--seg-track); color: var(--text);
+    cursor:pointer; font: inherit;
+    transition: background .16s ease, transform .12s ease;
+  }
+  .learn-action:active{ background: var(--row-press); transform: scale(.97); }
+  .learn-action .la-ic{
+    width: clamp(38px, 10vw, 48px); height: clamp(38px, 10vw, 48px);
+    border-radius:14px; background: var(--card-bg);
+    border:1px solid var(--card-line);
+    display:grid; place-items:center;
+    color: var(--accent, var(--text));
+  }
+  .learn-action .la-ic svg{ width: clamp(20px, 5vw, 24px); height: clamp(20px, 5vw, 24px); display:block; }
+  .learn-action .la-lab{ font-size: clamp(13px, 3.4vw, 15px); }
+  /* 计时状态 */
+  .learn-focus-state{
+    text-align:center; padding: clamp(6px, 2vw, 10px) 0;
+  }
+  .learn-timer{
+    font-family: var(--font-en), ui-monospace, monospace;
+    font-size: clamp(40px, 12vw, 64px);
+    font-variant-numeric: tabular-nums;
+    line-height:1; color: var(--text);
+    letter-spacing:.02em;
+  }
+  .learn-timer.running{ color: var(--accent, var(--text)); }
+  .learn-sub{
+    margin-top: clamp(8px, 2.4vw, 12px);
+    font-size: clamp(12.5px, 3.2vw, 14px); color: var(--text-soft);
+  }
+  .learn-focus-btns{
+    display:flex; justify-content:center; gap: clamp(12px, 3.5vw, 16px); margin-top: clamp(16px, 4vw, 22px);
+  }
+  .learn-focus-btn{
+    padding: clamp(10px, 3vw, 13px) clamp(20px, 6vw, 30px);
+    border:1px solid var(--card-line); border-radius:999px;
+    background: var(--seg-track); color: var(--text);
+    font: inherit; font-size: clamp(13.5px, 3.4vw, 15px);
+    cursor:pointer; transition: all .15s ease;
+  }
+  .learn-focus-btn.primary{ background: var(--accent, var(--text)); color: #fff; border-color: transparent; }
+  .learn-focus-btn:active{ transform: scale(.95); }
+  .learn-focus-btn:disabled{ opacity:.55; cursor:default; }
+  /* 时长选择 */
+  .learn-dur{
+    display:flex; flex-wrap:wrap; gap: clamp(8px, 2.4vw, 10px);
+    justify-content:center; margin-top: clamp(14px, 3.5vw, 18px);
+  }
+  .learn-dur-btn{
+    padding: clamp(7px, 2vw, 9px) clamp(14px, 3.6vw, 20px);
+    border:1px solid var(--card-line); border-radius:999px;
+    background: var(--seg-track); color: var(--text-soft);
+    font: inherit; font-size: clamp(13px, 3.2vw, 14px);
+    cursor:pointer; transition: all .15s ease;
+  }
+  .learn-dur-btn.active{ background: var(--accent, var(--text)); color:#fff; border-color:transparent; }
+  .learn-dur-btn:active{ transform: scale(.94); }
+  /* 热力图 */
+  .learn-heat{
+    display:flex; flex-wrap:wrap; gap: clamp(4px, 1.2vw, 6px);
+    justify-content:center;
+  }
+  .lh-cell{
+    width: clamp(12px, 3.4vw, 18px); height: clamp(12px, 3.4vw, 18px);
+    border-radius:4px;
+    background: var(--seg-track);
+    border:1px solid transparent;
+    transition: transform .1s ease;
+  }
+  .lh-cell.l0{ background: var(--seg-track); opacity:.55; }
+  .lh-cell.l1{ background: var(--accent, var(--text)); opacity:.22; }
+  .lh-cell.l2{ background: var(--accent, var(--text)); opacity:.45; }
+  .lh-cell.l3{ background: var(--accent, var(--text)); opacity:.72; }
+  .lh-cell.l4{ background: var(--accent, var(--text)); opacity:1; }
+  .lh-legend{
+    display:flex; align-items:center; justify-content:flex-end; gap:6px;
+    margin-top: clamp(10px, 2.6vw, 14px);
+    font-size: clamp(11px, 2.8vw, 12.5px); color: var(--text-faint);
+  }
+  .lh-legend .lh-cell{ width:clamp(10px, 2.6vw, 14px); height:clamp(10px, 2.6vw, 14px); }
+
   /* ── Voice call (speaking overlay · 假按键 / 纯 UI,后端以后接) ── */
   .call-overlay{
     position: fixed; inset: 0; z-index: 150;
@@ -2293,6 +2444,61 @@
     </div>
   </div>
 </div>
+<!-- ── Learn (专注学习 · Desk → 学习,番茄钟 + 热力图) ── -->
+<div class="learn-panel hidden" id="learnPanel" role="dialog" aria-modal="true" aria-label="学习">
+  <div class="learn-page">
+    <div class="learn-topbar">
+      <button class="learn-back" id="learnBack" type="button" aria-label="返回">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <span class="learn-title">学习</span>
+    </div>
+    <div class="learn-scroll">
+      <!-- 番茄钟 / 专注计时 -->
+      <section class="learn-card">
+        <h2 class="learn-card-h">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex:none;"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5"/><path d="M9 2h6"/></svg>
+          专注计时
+        </h2>
+        <div class="learn-focus-state">
+          <div class="learn-timer" id="learnTimer">25:00</div>
+          <div class="learn-sub" id="learnSub">选择时长，开始专注</div>
+        </div>
+        <div class="learn-dur" id="learnDur">
+          <button class="learn-dur-btn" type="button" data-min="5">5 min</button>
+          <button class="learn-dur-btn" type="button" data-min="10">10 min</button>
+          <button class="learn-dur-btn active" type="button" data-min="25">25 min</button>
+          <button class="learn-dur-btn" type="button" data-min="45">45 min</button>
+          <button class="learn-dur-btn" type="button" data-min="60">60 min</button>
+        </div>
+        <div class="learn-focus-btns">
+          <button class="learn-focus-btn primary" id="learnStart" type="button">开始</button>
+          <button class="learn-focus-btn" id="learnReset" type="button" style="display:none;">重置</button>
+        </div>
+        <div class="learn-sub" id="learnLockNote" style="color:var(--text-faint);font-size:clamp(11.5px,3vw,13px);text-align:center;margin-top:clamp(12px,3vw,16px);">
+          专注期间将锁定其他应用，Fatum Echo 在白名单内。
+        </div>
+      </section>
+      <!-- 学习热力图 -->
+      <section class="learn-card">
+        <h2 class="learn-card-h">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex:none;"><rect x="3" y="3" width="7" height="7" rx="1.6"/><rect x="14" y="3" width="7" height="7" rx="1.6"/><rect x="3" y="14" width="7" height="7" rx="1.6"/><rect x="14" y="14" width="7" height="7" rx="1.6"/></svg>
+          学习热力图
+        </h2>
+        <div class="learn-heat" id="learnHeat"></div>
+        <div class="lh-legend">
+          <span>少</span>
+          <span class="lh-cell l0"></span>
+          <span class="lh-cell l1"></span>
+          <span class="lh-cell l2"></span>
+          <span class="lh-cell l3"></span>
+          <span class="lh-cell l4"></span>
+          <span>多</span>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
 <!-- ── Voice call (speaking overlay · 假按键,纯 UI) ── -->
 <div class="call-overlay hidden" id="callOverlay" aria-hidden="true">
   <div class="call-mini" id="callMini">
@@ -2636,10 +2842,133 @@ if (deskPanel) deskPanel.addEventListener("click", (e) => {
   const app = e.target.closest(".desk-app");
   if (!app) return;
   const which = app.dataset.desk;
-  if (which === "settings"){ closeDesk(); openProfile(); }
-  else if (which === "tools"){ closeDesk(); openProfile(); }
-  else showToast("即将开放");        // listen / learn / read / play / dream / mail / mcp … placeholder
+  if (which === "learn"){ closeDesk(); openLearn(); }
+  else showToast("即将开放");        // listen / read / play / dream / mail / mcp / tools / settings … placeholder
 });
+/* ── Learn (专注学习 · 番茄钟 + 热力图) ── */
+const learnPanel = $("#learnPanel"), learnBack = $("#learnBack");
+const learnTimerEl = $("#learnTimer"), learnSub = $("#learnSub");
+const learnStart = $("#learnStart"), learnReset = $("#learnReset");
+const learnDur = $("#learnDur"), learnHeat = $("#learnHeat");
+let learnCloseTimer = null, learnTimerInt = null;
+let learnRemainSec = 0, learnTotalSec = 0, learnRunning = false;
+const LEARN_KEY = "fatum_learn_log";   // { "YYYY-MM-DD": 分钟数 }
+function openLearn(){
+  if (!learnPanel) return;
+  renderLearnHeat();
+  clearTimeout(learnCloseTimer);
+  learnPanel.classList.remove("hidden");
+  requestAnimationFrame(() => requestAnimationFrame(() => learnPanel.classList.add("open")));
+}
+function closeLearn(){
+  if (!learnPanel) return;
+  learnPanel.classList.remove("open");
+  clearTimeout(learnCloseTimer);
+  learnCloseTimer = setTimeout(() => learnPanel.classList.add("hidden"), 360);
+}
+if (learnBack) learnBack.addEventListener("click", closeLearn);
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && learnPanel && !learnPanel.classList.contains("hidden")) closeLearn();
+});
+function learnSetTimerLabel(){
+  const mm = String(Math.floor(learnRemainSec / 60)).padStart(2, "0");
+  const ss = String(learnRemainSec % 60).padStart(2, "0");
+  learnTimerEl.textContent = `${mm}:${ss}`;
+  learnTimerEl.classList.toggle("running", learnRunning);
+}
+function learnStop(){
+  if (learnTimerInt){ clearInterval(learnTimerInt); learnTimerInt = null; }
+  learnRunning = false;
+  learnStart.textContent = "开始";
+  learnStart.disabled = false;
+  learnReset.style.display = "none";
+  learnDur.querySelectorAll(".learn-dur-btn").forEach(b => b.disabled = false);
+  learnSub.textContent = "已结束，休息一下吧";
+  learnSetTimerLabel();
+}
+function learnTick(){
+  if (learnRemainSec <= 0){
+    // 完成一次专注,记入热力图
+    const mins = learnTotalSec / 60;
+    const today = new Date();
+    const key = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
+    try{
+      const log = JSON.parse(localStorage.getItem(LEARN_KEY) || "{}");
+      log[key] = (log[key] || 0) + mins;
+      localStorage.setItem(LEARN_KEY, JSON.stringify(log));
+    }catch(_){}
+    renderLearnHeat();
+    learnTotalSec = 0;
+    learnStop();
+    return;
+  }
+  learnRemainSec--;
+  learnSetTimerLabel();
+}
+if (learnStart) learnStart.addEventListener("click", () => {
+  if (learnRunning){
+    // 暂停
+    clearInterval(learnTimerInt); learnTimerInt = null;
+    learnRunning = false;
+    learnStart.textContent = "继续";
+    learnSub.textContent = "已暂停";
+    return;
+  }
+  if (learnRemainSec <= 0){
+    const cur = learnDur.querySelector(".learn-dur-btn.active");
+    learnTotalSec = learnRemainSec = (cur ? parseInt(cur.dataset.min, 10) : 25) * 60;
+  }
+  learnRunning = true;
+  learnStart.textContent = "暂停";
+  learnReset.style.display = "";
+  learnDur.querySelectorAll(".learn-dur-btn").forEach(b => b.disabled = true);
+  learnSub.textContent = "专注中，别分心";
+  learnSetTimerLabel();
+  learnTimerInt = setInterval(learnTick, 1000);
+});
+if (learnReset) learnReset.addEventListener("click", () => {
+  clearInterval(learnTimerInt); learnTimerInt = null;
+  learnRunning = false;
+  learnTotalSec = learnRemainSec = 0;
+  learnStart.textContent = "开始";
+  learnStart.disabled = false;
+  learnReset.style.display = "none";
+  learnDur.querySelectorAll(".learn-dur-btn").forEach(b => b.disabled = false);
+  learnSub.textContent = "选择时长，开始专注";
+  learnSetTimerLabel();
+});
+if (learnDur) learnDur.addEventListener("click", (e) => {
+  const btn = e.target.closest(".learn-dur-btn");
+  if (!btn || learnRunning) return;
+  learnDur.querySelectorAll(".learn-dur-btn").forEach(b => b.classList.toggle("active", b === btn));
+  const mins = parseInt(btn.dataset.min, 10) || 25;
+  learnTotalSec = learnRemainSec = mins * 60;
+  learnSetTimerLabel();
+  learnSub.textContent = `已选 ${mins} 分钟，点开始`;
+});
+function renderLearnHeat(){
+  if (!learnHeat) return;
+  let log = {};
+  try{ log = JSON.parse(localStorage.getItem(LEARN_KEY) || "{}"); }catch(_){}
+  // 最近 16 周,一天一格
+  const cells = [];
+  const today = new Date();
+  for (let i = 16 * 7 - 1; i >= 0; i--){
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    const mins = log[key] || 0;
+    let lv = 0;
+    if (mins > 0){
+      if (mins < 15) lv = 1;
+      else if (mins < 30) lv = 2;
+      else if (mins < 60) lv = 3;
+      else lv = 4;
+    }
+    cells.push(`<span class="lh-cell l${lv}" title="${key} · ${mins}分钟"></span>`);
+  }
+  learnHeat.innerHTML = cells.join("");
+}
 refreshDays();
 if (backBtn) backBtn.addEventListener("click", openMenu);
 if (menuPanel){
