@@ -50,6 +50,7 @@
     --menu-wall-harbor: url("menu-harbor.webp");
     --menu-wall-default: var(--menu-wall-light);
     --avatar-default: url("avatar-sea.png");
+    --human-avatar-default: url("avatar-sea.png");
     /* ── PEARL TIDE · 珍珠潮汐(default) ── */
     --bg: #F7FAFC;
     --header-bg: #F7FAFC;
@@ -492,6 +493,31 @@
   }
   .msg-think .think-block{ margin:0; }
   .msg-think + .bubble{ margin-top: clamp(7px, 1.2vw, 11px); }
+  /* 用户(小宝)消息右侧头像:开关 showHumanAvatar 控制 */
+  .row.human.has-human-avatar{ padding-right: calc(var(--avatar-size) + clamp(10px, 1.6vw, 16px)); }
+  .row.human.has-human-avatar.show-human-avatar::after{
+    content:"";
+    position:absolute;
+    right:0;
+    top: clamp(5px, 1vw, 9px);
+    width: var(--avatar-size);
+    height: var(--avatar-size);
+    border-radius: 50%;
+    background-image: var(--human-avatar-default);
+    background-size: cover;
+    background-position: center;
+    box-shadow: 0 12px 24px rgba(24,46,67,0.14);
+  }
+  /* 用户名字(小宝)显示 */
+  .row.human.show-human-name .bubble::before{
+    content:"小宝";
+    display:block;
+    font-size: clamp(10.5px, 2.7vw, 12px);
+    letter-spacing:.04em;
+    color: var(--text-faint);
+    margin-bottom: clamp(3px, 1vw, 5px);
+    font-family: var(--font-en), var(--font-cn);
+  }
   .row.ai::before{
     content:"";
     position:absolute;
@@ -1568,6 +1594,128 @@
   }
   .lh-legend .lh-cell{ width:clamp(10px, 2.6vw, 14px); height:clamp(10px, 2.6vw, 14px); }
 
+  /* ── Desk 设置 (Desk → 设置:模型配置 + 聊天显示开关) ── */
+  .dset-panel{
+    position: fixed; inset: 0; z-index: 197;
+    pointer-events: none;
+    transform: translateX(100%);
+    opacity: 0;
+    transition: transform .34s var(--ease-soft), opacity .26s ease;
+  }
+  .dset-panel.open{ transform: none; opacity: 1; pointer-events: auto; }
+  .dset-page{
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    background-color: var(--bg);
+    background-image: var(--wall-default);
+    background-size: cover; background-position: center;
+    overflow: hidden;
+  }
+  .dset-page::before{
+    content:""; position:absolute; inset:0; background: var(--scrim); pointer-events:none;
+  }
+  .dset-topbar{
+    position: relative; z-index:1;
+    flex: 0 0 auto;
+    display:flex; align-items:center; gap:10px;
+    height: calc(56px + env(safe-area-inset-top));
+    padding: env(safe-area-inset-top) var(--side-pad) 0;
+  }
+  .dset-back{
+    width:40px; height:40px; flex:none;
+    border:0; border-radius:50%; padding:0; margin-left:-6px;
+    background: transparent; color: var(--text);
+    display:grid; place-items:center; cursor:pointer;
+    transition: transform .15s ease;
+  }
+  .dset-back:active{ transform: scale(.9); }
+  .dset-back svg{ width:24px; height:24px; display:block; }
+  .dset-title{
+    font-family: var(--font-en), var(--font-cn);
+    font-size: clamp(15px, 4vw, 18px); letter-spacing:.06em; color: var(--text);
+  }
+  .dset-scroll{
+    position: relative; z-index:1;
+    flex: 1 1 auto; overflow-y: auto;
+    -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+    padding: clamp(18px, 5vw, 30px) var(--side-pad) calc(36px + env(safe-area-inset-bottom));
+    display:flex; flex-direction:column; gap: clamp(20px, 5.5vw, 32px);
+  }
+  .dset-scroll::-webkit-scrollbar{ width:0; height:0; }
+  .dset-card{
+    background: var(--card-bg);
+    border:1px solid var(--card-line);
+    border-radius:20px;
+    box-shadow: var(--card-shadow);
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    padding: clamp(16px, 4.2vw, 24px);
+  }
+  .dset-card-h{
+    display:flex; align-items:center; gap:9px;
+    font-family: var(--font-cn);
+    font-size: clamp(15px, 4vw, 17px); font-weight:600; color: var(--text);
+    margin: 0 0 clamp(14px, 3.5vw, 20px);
+  }
+  .dset-field{ margin-bottom: clamp(11px, 3vw, 15px); }
+  .dset-label{
+    display:block; font-size: clamp(12px, 3.2vw, 13px);
+    color: var(--text-soft); margin-bottom: 6px;
+  }
+  .dset-input{
+    width:100%; box-sizing:border-box;
+    padding: clamp(10px, 2.8vw, 12px) clamp(12px, 3.2vw, 14px);
+    border:1px solid var(--card-line); border-radius:12px;
+    background: var(--seg-track); color: var(--text);
+    font: inherit; font-size: clamp(13.5px, 3.4vw, 15px);
+  }
+  .dset-input:focus{ outline:none; border-color: var(--accent, var(--text)); }
+  .dset-save{
+    width:100%; margin-top: clamp(4px, 1.4vw, 8px);
+    padding: clamp(11px, 3vw, 13px);
+    border:0; border-radius:12px;
+    background: var(--accent, var(--text)); color:#fff;
+    font: inherit; font-size: clamp(14px, 3.6vw, 15.5px); font-weight:600;
+    cursor:pointer; transition: opacity .15s ease, transform .12s ease;
+  }
+  .dset-save:active{ opacity:.82; transform: scale(.98); }
+  .dset-hint{
+    min-height:17px; margin-top: 9px;
+    font-size: clamp(11.5px, 3vw, 12.5px); color: var(--text-faint); text-align:center;
+  }
+  /* 行开关 */
+  .dset-row{
+    display:flex; align-items:center; gap:12px;
+    padding: clamp(11px, 3vw, 14px) 0;
+    border-top:1px solid var(--hairline);
+  }
+  .dset-row:first-of-type{ border-top:0; }
+  .dset-row-copy{ flex:1 1 auto; min-width:0; }
+  .dset-row-name{ font-size: clamp(13.5px, 3.4vw, 15px); color: var(--text); }
+  .dset-row-sub{ font-size: clamp(11px, 2.8vw, 12.5px); color: var(--text-faint); margin-top:2px; }
+  .dset-toggle{
+    flex:0 0 auto; width:46px; height:28px; padding:0;
+    border:1px solid var(--card-line); border-radius:999px;
+    background: var(--seg-track); cursor:pointer;
+    position:relative; transition: background .18s ease, border-color .18s ease;
+  }
+  .dset-toggle span{
+    position:absolute; top:2px; left:2px;
+    width:22px; height:22px; border-radius:50%;
+    background: var(--text-soft);
+    transition: transform .2s var(--ease-soft), background .2s ease;
+  }
+  .dset-toggle[aria-pressed="true"]{ background: var(--accent, var(--text)); border-color: transparent; }
+  .dset-toggle[aria-pressed="true"] span{ transform: translateX(18px); background:#fff; }
+  .dset-pick{
+    flex:0 0 auto;
+    padding: clamp(7px, 2vw, 9px) clamp(13px, 3.4vw, 18px);
+    border:1px solid var(--card-line); border-radius:999px;
+    background: var(--seg-track); color: var(--text);
+    font: inherit; font-size: clamp(12.5px, 3.2vw, 13.5px);
+    cursor:pointer;
+  }
+  .dset-pick:active{ transform: scale(.95); }
+
   /* ── Voice call (speaking overlay · 假按键 / 纯 UI,后端以后接) ── */
   .call-overlay{
     position: fixed; inset: 0; z-index: 150;
@@ -2102,18 +2250,6 @@
 </head>
 <body>
 
-<!-- ── Login ── -->
-<div class="login" id="login">
-  <div class="orb"></div>
-  <h1>顾淮</h1>
-  <p class="sub">输入连接密钥,进入你和顾淮的频道。</p>
-  <form id="loginForm" autocomplete="off">
-    <input id="secretInput" type="password" inputmode="text" placeholder="连接密钥" autocomplete="off" spellcheck="false">
-    <button type="submit">连接</button>
-    <p class="err" id="loginErr"></p>
-  </form>
-</div>
-
 <!-- ── App ── -->
 <div class="wall" id="wall"></div>
 <div class="app hidden" id="app" data-conn="offline">
@@ -2395,7 +2531,6 @@
     </div>
     <div class="desk-scroll">
       <div class="desk-grid">
-        <!-- 一起听 -->
         <button class="desk-app" type="button" data-desk="listen">
           <span class="desk-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span>
           <span class="desk-lab">一起听</span>
@@ -2442,6 +2577,29 @@
         </button>
       </div>
     </div>
+    <!-- Desk 主页面底栏 tab (进入内部组件后由全屏面板盖住而消失) -->
+    <nav class="menu-tabbar" id="deskTabbar" aria-label="快捷入口">
+      <button class="tab-item" type="button" data-dtab="chat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.3 7.6L3 21l1.9-5.7A8.5 8.5 0 1 1 21 11.5Z"/></svg>
+        <span class="tab-lab">Chat</span>
+      </button>
+      <button class="tab-item" type="button" data-dtab="diary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3.5A1.5 1.5 0 0 1 6.5 2H20v20H6.5A1.5 1.5 0 0 1 5 20.5z"/><path d="M5 19.5a1.5 1.5 0 0 1 1.5-1.5H20"/><path d="M9 7h6M9 11h6"/></svg>
+        <span class="tab-lab">diary</span>
+      </button>
+      <button class="tab-item active" type="button" data-dtab="desk">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></svg>
+        <span class="tab-lab">Desk</span>
+      </button>
+      <button class="tab-item" type="button" data-dtab="calendar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9.5h18M8 3v4M16 3v4"/></svg>
+        <span class="tab-lab">Calendar</span>
+      </button>
+      <button class="tab-item" type="button" data-dtab="memory">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5c.8 5 3.5 7.7 8.5 8.5-5 .8-7.7 3.5-8.5 8.5-.8-5-3.5-7.7-8.5-8.5 5-.8 7.7-3.5 8.5-8.5Z"/></svg>
+        <span class="tab-lab">Memory</span>
+      </button>
+    </nav>
   </div>
 </div>
 <!-- ── Learn (专注学习 · Desk → 学习,番茄钟 + 热力图) ── -->
@@ -2497,6 +2655,87 @@
         </div>
       </section>
     </div>
+  </div>
+</div>
+<!-- ── Desk 设置 (Desk → 设置:模型配置 + 聊天显示开关) ── -->
+<div class="dset-panel hidden" id="dsetPanel" role="dialog" aria-modal="true" aria-label="设置">
+  <div class="dset-page">
+    <div class="dset-topbar">
+      <button class="dset-back" id="dsetBack" type="button" aria-label="返回">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <span class="dset-title">设置</span>
+    </div>
+    <div class="dset-scroll">
+      <!-- AI 模型配置 -->
+      <section class="dset-card">
+        <div class="dset-card-h">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex:none;"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg>
+          AI 模型配置
+        </div>
+        <div class="dset-field">
+          <label class="dset-label" for="dsUrl">API 地址</label>
+          <input id="dsUrl" class="dset-input" type="text" placeholder="https://api.deepseek.com/v1" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="dset-field">
+          <label class="dset-label" for="dsKey">API Key</label>
+          <input id="dsKey" class="dset-input" type="password" placeholder="sk-..." autocomplete="off" spellcheck="false">
+        </div>
+        <div class="dset-field">
+          <label class="dset-label" for="dsModel">模型名</label>
+          <input id="dsModel" class="dset-input" type="text" placeholder="deepseek-flash / glm-4.6 / 自定义" autocomplete="off" spellcheck="false">
+        </div>
+        <button class="dset-save" id="dsSave" type="button">保存并应用</button>
+        <div class="dset-hint" id="dsHint"></div>
+      </section>
+      <!-- 聊天显示 -->
+      <section class="dset-card">
+        <div class="dset-card-h">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex:none;"><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/><circle cx="12" cy="12" r="3.4"/></svg>
+          聊天显示
+        </div>
+        <!-- 显示用户头像 -->
+        <div class="dset-row">
+          <div class="dset-row-copy">
+            <div class="dset-row-name">显示用户头像</div>
+            <div class="dset-row-sub">在聊天中显示你的头像</div>
+          </div>
+          <button class="dset-toggle" type="button" data-toggle="showHumanAvatar" aria-pressed="true"><span></span></button>
+        </div>
+        <div class="dset-row" id="humanAvatarRow" style="display:none;">
+          <div class="dset-row-copy">
+            <div class="dset-row-name">选择头像</div>
+            <div class="dset-row-sub">从相册导入（方形会裁成圆形）</div>
+          </div>
+          <button class="dset-pick" id="dsetHumanAvatar" type="button">导入</button>
+        </div>
+        <!-- 显示用户名字 -->
+        <div class="dset-row">
+          <div class="dset-row-copy">
+            <div class="dset-row-name">显示用户名字</div>
+            <div class="dset-row-sub">在消息旁显示「小宝」</div>
+          </div>
+          <button class="dset-toggle" type="button" data-toggle="showHumanName" aria-pressed="true"><span></span></button>
+        </div>
+        <!-- 显示思考卡片 -->
+        <div class="dset-row">
+          <div class="dset-row-copy">
+            <div class="dset-row-name">显示思考卡片</div>
+            <div class="dset-row-sub">显示「thinking」可展开块</div>
+          </div>
+          <button class="dset-toggle" type="button" data-toggle="showThinking" aria-pressed="true"><span></span></button>
+        </div>
+        <!-- 显示工具卡片 -->
+        <div class="dset-row">
+          <div class="dset-row-copy">
+            <div class="dset-row-name">显示工具卡片</div>
+            <div class="dset-row-sub">显示 AI 的工具调用记录</div>
+          </div>
+          <button class="dset-toggle" type="button" data-toggle="showAct" aria-pressed="true"><span></span></button>
+        </div>
+      </section>
+    </div>
+    <input type="file" id="dsetHumanAvatarInput" accept="image/*" class="hidden">
   </div>
 </div>
 <!-- ── Voice call (speaking overlay · 假按键,纯 UI) ── -->
@@ -2615,6 +2854,7 @@ const CONFIG = {
   AI_NAME:    "顾淮",       // your AI companion's display name (header / call / push / narration)
   HUMAN_NAME: "小宝",           // how you're referred to in narration (rarely shown)
   SINCE:      "2026/07/24",   // "together since" date YYYY/MM/DD for the menu counter ("" hides it)
+  SECRET:     "QY5xGPLBbw7djDe9Bs3O34C9qGIat8QsOnDDJVvXpHI",  // relay 密钥(内置,免登录;如泄露可在后端改 RELAY_SECRET 后同步这里)
 };
 const AI_NAME = CONFIG.AI_NAME, HUMAN_NAME = CONFIG.HUMAN_NAME, APP_NAME = CONFIG.APP_NAME;
 
@@ -2623,7 +2863,7 @@ const USE_MOCK  = false;          // true = self-contained demo with fake data (
 const LS_KEY    = "companion_secret";
 
 /* ── 状态 ── */
-let secret  = localStorage.getItem(LS_KEY);
+let secret  = localStorage.getItem(LS_KEY) || (CONFIG.SECRET || "");
 let lastId  = 0;
 const seen  = new Set();
 let es      = null;     // EventSource(或 MockEventSource)
@@ -2652,7 +2892,7 @@ function persistDeletedKeys(){
 
 /* ── DOM ── */
 const $ = (s) => document.querySelector(s);
-const loginEl = $("#login"), appEl = $("#app");
+const appEl = $("#app");
 const scrollEl = $("#scroll"), emptyEl = $("#empty");
 const statusEl = $("#status"), inputEl = $("#input"), sendBtn = $("#sendBtn"), newMsgBtn = $("#newMsgBtn");
 const micBtn = $("#micBtn"), clipBtn = $("#clipBtn"), avatarBtn = $("#avatarBtn");
@@ -2730,6 +2970,13 @@ function applyAvatar(url){
   const val = url ? `url("${url}")` : 'url("avatar-sea.png")';
   document.documentElement.style.setProperty("--avatar-default", val);
 }
+function applyHumanAvatar(){
+  // 用户(小宝)侧头像:Desk 设置里导入,存 fatum_human_avatar
+  let url = "";
+  try{ url = localStorage.getItem("fatum_human_avatar") || ""; }catch(_){}
+  const val = url ? `url("${url}")` : 'url("avatar-sea.png")';
+  document.documentElement.style.setProperty("--human-avatar-default", val);
+}
 function applyRemark(value){
   const name = (value || "").trim() || AI_NAME;
   if (peerNameEl) peerNameEl.textContent = name;
@@ -2740,9 +2987,6 @@ function applyIdentity(){
   try{ document.title = APP_NAME; }catch(_){}
   const setText = (sel, val) => { const el = document.querySelector(sel); if (el) el.textContent = val; };
   const setAttr = (sel, a, val) => { const el = document.querySelector(sel); if (el) el.setAttribute(a, val); };
-  setText(".login h1", AI_NAME);
-  setText(".login .sub", "输入连接密钥，进入你和" + AI_NAME + "的频道。");
-  const emp = document.querySelector("#empty p"); if (emp) emp.innerHTML = "这里只有你和" + AI_NAME + "。<br>说点什么吧。";
   setText(".call-name", AI_NAME);
   setAttr("#callAvatarImg", "aria-label", AI_NAME);
   setText(".incoming-call-title", AI_NAME + "来电");
@@ -2776,6 +3020,7 @@ try{ localStorage.removeItem("companion_bg"); }catch(e){}
 applyIdentity();
 applyWall(currentWall());
 applyAvatar(localStorage.getItem(AVATAR_KEY));
+applyHumanAvatar();
 applyRemark(localStorage.getItem(REMARK_KEY));
 /* 主题只由日夜 toggle 控制(持久化),不再实时跟随系统;首次打开的初始值由 <head> 早期脚本取一次系统值 */
 if (avatarBtn) avatarBtn.addEventListener("click", openProfile);
@@ -2824,6 +3069,7 @@ const deskPanel = $("#deskPanel"), deskBack = $("#deskBack");
 let deskCloseTimer = null;
 function openDesk(){
   if (!deskPanel) return;
+  if (appEl) appEl.classList.remove("hidden");          // 开屏直达:保证底层 chat 壳在,Desk 全屏盖上面
   clearTimeout(deskCloseTimer);
   deskPanel.classList.remove("hidden");
   requestAnimationFrame(() => requestAnimationFrame(() => deskPanel.classList.add("open")));
@@ -2834,16 +3080,27 @@ function closeDesk(){
   clearTimeout(deskCloseTimer);
   deskCloseTimer = setTimeout(() => deskPanel.classList.add("hidden"), 360);
 }
-if (deskBack) deskBack.addEventListener("click", closeDesk);
+if (deskBack) deskBack.addEventListener("click", () => { closeDesk(); /* 返回时若 chat 壳在则留在 chat,否则回 desk 也无妨 */ });
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && deskPanel && !deskPanel.classList.contains("hidden")) closeDesk();
+});
+/* Desk 底栏 tab:chat 关 desk 回聊天;desk 保持;其余占位 */
+const deskTabbar = $("#deskTabbar");
+if (deskTabbar) deskTabbar.addEventListener("click", (e) => {
+  const tab = e.target.closest(".tab-item");
+  if (!tab) return;
+  deskTabbar.querySelectorAll(".tab-item").forEach(t => t.classList.toggle("active", t === tab));
+  if (tab.dataset.dtab === "chat"){ closeDesk(); }
+  else if (tab.dataset.dtab === "desk"){ /* 已在 Desk */ }
+  else showToast("即将开放");
 });
 if (deskPanel) deskPanel.addEventListener("click", (e) => {
   const app = e.target.closest(".desk-app");
   if (!app) return;
   const which = app.dataset.desk;
   if (which === "learn"){ closeDesk(); openLearn(); }
-  else showToast("即将开放");        // listen / read / play / dream / mail / mcp / tools / settings … placeholder
+  else if (which === "settings"){ closeDesk(); openDeskSettings(); }
+  else showToast("即将开放");        // listen / read / play / dream / mail / mcp / tools … placeholder
 });
 /* ── Learn (专注学习 · 番茄钟 + 热力图) ── */
 const learnPanel = $("#learnPanel"), learnBack = $("#learnBack");
@@ -2969,6 +3226,118 @@ function renderLearnHeat(){
   }
   learnHeat.innerHTML = cells.join("");
 }
+/* ── Desk 设置 (Desk → 设置:模型配置 + 聊天显示开关) ── */
+const dsetPanel = $("#dsetPanel"), dsetBack = $("#dsetBack");
+const dsetUrl = $("#dsUrl"), dsetKey = $("#dsKey"), dsetModel = $("#dsModel"), dsetSave = $("#dsSave"), dsetHint = $("#dsHint");
+const dsetHumanAvatar = $("#dsetHumanAvatar"), dsetHumanAvatarInput = $("#dsetHumanAvatarInput"), humanAvatarRow = $("#humanAvatarRow");
+let dsetCloseTimer = null;
+const DISPLAY_KEY = "fatum_display_prefs";
+const HUMAN_AVATAR_KEY = "fatum_human_avatar";
+function displayPrefs(){
+  try{ return JSON.parse(localStorage.getItem(DISPLAY_KEY) || "{}"); }catch(_){ return {}; }
+}
+function setDisplayPref(key, val){
+  const p = displayPrefs(); p[key] = val;
+  try{ localStorage.setItem(DISPLAY_KEY, JSON.stringify(p)); }catch(_){}
+  document.documentElement.setAttribute("data-" + key, val ? "1" : "0");
+}
+function displayOn(key){ return displayPrefs()[key] !== false; }
+function openDeskSettings(){
+  if (!dsetPanel) return;
+  // 模型配置框预填当前自定义/最近配置
+  const conf = savedModelConf(pendingModel && pendingModel !== "__custom__" ? pendingModel : "__custom__")
+    || savedModelConf("__custom__");
+  try{
+    const cur = JSON.parse(localStorage.getItem("companion_custom_model") || "null");
+    const src = cur || conf;
+    if (src){
+      if (src.url) dsetUrl.value = src.url;
+      if (src.key) dsetKey.value = src.key;
+      if (src.model) dsetModel.value = src.model;
+    }
+  }catch(_){}
+  // 预填内置密钥
+  if (!dsetKey.value && CONFIG.SECRET) dsetKey.value = CONFIG.SECRET;
+  if (!dsetUrl.value) dsetUrl.value = "https://api.deepseek.com/v1";
+  if (!dsetModel.value) dsetModel.value = "deepseek-flash";
+  syncDisplayToggles();
+  clearTimeout(dsetCloseTimer);
+  dsetPanel.classList.remove("hidden");
+  requestAnimationFrame(() => requestAnimationFrame(() => dsetPanel.classList.add("open")));
+}
+function closeDeskSettings(){
+  if (!dsetPanel) return;
+  dsetPanel.classList.remove("open");
+  clearTimeout(dsetCloseTimer);
+  dsetCloseTimer = setTimeout(() => dsetPanel.classList.add("hidden"), 360);
+}
+if (dsetBack) dsetBack.addEventListener("click", () => { closeDeskSettings(); openDesk(); });
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && dsetPanel && !dsetPanel.classList.contains("hidden")){ closeDeskSettings(); openDesk(); }
+});
+/* 显示开关 toggle 同步 UI */
+function syncDisplayToggles(){
+  document.querySelectorAll(".dset-toggle").forEach((btn) => {
+    const key = btn.dataset.toggle;
+    const on = displayOn(key);
+    btn.setAttribute("aria-pressed", String(on));
+    if (key === "showHumanAvatar") humanAvatarRow.style.display = on ? "" : "none";
+  });
+}
+if (dsetPanel) dsetPanel.addEventListener("click", (e) => {
+  const tgl = e.target.closest(".dset-toggle");
+  if (tgl){
+    const key = tgl.dataset.toggle;
+    const now = !displayOn(key);
+    setDisplayPref(key, now);
+    tgl.setAttribute("aria-pressed", String(now));
+    if (key === "showHumanAvatar") humanAvatarRow.style.display = now ? "" : "none";
+    applyDisplayPrefs();
+    showToast(now ? "已开启" : "已关闭");
+    return;
+  }
+});
+if (dsetHumanAvatar) dsetHumanAvatar.addEventListener("click", () => dsetHumanAvatarInput && dsetHumanAvatarInput.click());
+if (dsetHumanAvatarInput) dsetHumanAvatarInput.addEventListener("change", () => {
+  const f = dsetHumanAvatarInput.files && dsetHumanAvatarInput.files[0];
+  if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    const dataUrl = String(rd.result || "");
+    try{ localStorage.setItem(HUMAN_AVATAR_KEY, dataUrl); }catch(_){ showToast("头像过大,保存失败"); return; }
+    applyDisplayPrefs();
+    showToast("头像已更新");
+  };
+  rd.readAsDataURL(f);
+  dsetHumanAvatarInput.value = "";
+});
+if (dsetSave) dsetSave.addEventListener("click", async () => {
+  const url = (dsetUrl.value || "").trim().replace(/\/+$/, "");
+  const key = (dsetKey.value || "").trim();
+  const model = (dsetModel.value || "").trim();
+  if (!url || !key || !model){ dsetHint.textContent = "地址 / Key / 模型名都要填"; return; }
+  const conf = { url, key, model };
+  try{
+    const r = await fetch(`${API_BASE}/app/loop_config`, {
+      method: "POST",
+      headers: { ...authHeaders(), "Content-Type": "application/json" },
+      body: JSON.stringify({ main_chain: [{ model, url, key }] })
+    });
+    if (!r.ok) throw new Error("loop_config " + r.status);
+    try{ localStorage.setItem("companion_custom_model", JSON.stringify(conf)); }catch(_){}
+    saveModelConf("__custom__", conf);
+    dsetHint.textContent = "已保存并应用到大脑";
+    setTimeout(() => { dsetHint.textContent = ""; }, 2200);
+  }catch(_){
+    dsetHint.textContent = "保存失败,请检查地址和 Key";
+  }
+});
+/* 显示开关真正生效:渲染时按偏好过滤 */
+function displayShows(what){ return displayOn(what); }
+function applyDisplayPrefs(){
+  // 头像/名字由 makeMessage 读取偏好动态处理;这里先触发重绘
+  if (typeof scheduleRender === "function") scheduleRender({ preserveAnchor: true });
+}
 refreshDays();
 if (backBtn) backBtn.addEventListener("click", openMenu);
 if (menuPanel){
@@ -3029,7 +3398,7 @@ if (themeSeg) themeSeg.addEventListener("click", e => {
   var isLocal = /^(localhost|127\.0\.0\.1|0\.0\.0\.0)$/.test(location.hostname);
   function maybePreview(){
     if (isLocal && location.hash === "#preview-menu"){
-      try{ loginEl.classList.add("hidden"); appEl.classList.remove("hidden"); }catch(e){}
+      try{ appEl.classList.remove("hidden"); }catch(e){}
       if (typeof openMenu === "function") openMenu();
     }
   }
@@ -4966,7 +5335,7 @@ function buildVirtualRows(){
       return;
     }
     if (m.kind === "act"){
-      rows.push({ type:"act", key:`m:${m._key}`, message:m });
+      if (displayOn("showAct")){ rows.push({ type:"act", key:`m:${m._key}`, message:m }); }
       prevBubble = null;                            // 像 thinking 一样打断气泡成组
       return;
     }
@@ -5208,6 +5577,10 @@ function makeMessage(rowData){
   const m = rowData.message;
   const row = document.createElement("div");
   row.className = `row ${m.from === "human" ? "human" : "ai"}${rowData.grouped ? " grouped" : ""}${rowData.tail ? " tail" : ""}`;
+  if (m.from === "human"){
+    if (displayOn("showHumanAvatar")) row.classList.add("show-human-avatar", "has-human-avatar");
+    if (displayOn("showHumanName")) row.classList.add("show-human-name");
+  }
   row.dataset.id = m.id; row.dataset.from = m.from; row.dataset.ts = tsMs(m); row.dataset.messageKey = m._key;
   if (freshKeys.has(m._key)){                       // 只对刚发/刚收到的那条播一次入场动画
     const cls = m.from === "human" ? "enter-human" : "enter-ai";
@@ -5217,7 +5590,7 @@ function makeMessage(rowData){
   }
   // 思考块:来自 meta.reasoning(后端把一轮思考合并进回复),作为独立行画在气泡上方
   const reason = (m.from === "ai" && m.meta && m.meta.reasoning) ? String(m.meta.reasoning).trim() : "";
-  if (reason && rowData.reasonFirst !== false && !rowData.grouped){
+  if (reason && displayOn("showThinking") && rowData.reasonFirst !== false && !rowData.grouped){
     const thinkWrap = document.createElement("div");
     thinkWrap.className = "msg-think";
     thinkWrap.appendChild(makeThinkBlock(m, reason));
@@ -6191,44 +6564,14 @@ if (clipBtn && clipInput){
   clipInput.addEventListener("change", () => { const fs = Array.from(clipInput.files || []); clipInput.value = ""; handleFiles(fs); });
 }
 
-/* ════════════ 登录 / 401 ════════════ */
+/* ════════════ 401（密钥失效兜底）════════════ */
 function handle401(){
   secret = null;
   localStorage.removeItem(LS_KEY);
   if (es){ try{ es.close(); }catch(e){} es = null; }
   if (healthTimer){ clearInterval(healthTimer); healthTimer = null; }
-  showLogin("密钥不对,请重新输入。");
+  showToast("连接失效，请刷新页面");
 }
-
-function showLogin(msg){
-  appEl.classList.add("hidden");
-  loginEl.classList.remove("hidden");
-  $("#loginErr").textContent = msg || "";
-  $("#secretInput").value = "";
-  setTimeout(() => $("#secretInput").focus(), 80);
-}
-
-$("#loginForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const val = $("#secretInput").value.trim();
-  if (!val) return;
-  const btn = e.target.querySelector("button");
-  btn.disabled = true; btn.textContent = "连接中…";
-  secret = val;
-  try{
-    // 用 history 验证密钥(401 会抛错)
-    await loadSessions();
-    loadBrain();
-    const msgs = await apiLatestHistory();
-    localStorage.setItem(LS_KEY, secret);
-    startChat(msgs);
-  }catch(err){
-    secret = null;
-    if (String(err.message) !== "401") $("#loginErr").textContent = "连不上,稍后再试。";
-  }finally{
-    btn.disabled = false; btn.textContent = "连接";
-  }
-});
 
 /* ════════════ 启动 ════════════ */
 function startRealtime(){
@@ -6258,7 +6601,6 @@ function startRealtime(){
   }, 25000);
 }
 function startChat(initialMsgs, { connect = true, fromCache = false } = {}){
-  loginEl.classList.add("hidden");
   appEl.classList.remove("hidden");
   setConn("offline");
   resetChatState();
@@ -6278,7 +6620,6 @@ function startChat(initialMsgs, { connect = true, fromCache = false } = {}){
 }
 
 async function init(){
-  if (!secret){ showLogin(); return; }
   await loadSessions();
   loadBrain();
   cacheLoopKeys();
@@ -6298,9 +6639,10 @@ async function init(){
       startChat(msgs);
     }
   }catch(err){
-    if (String(err.message) !== "401" && !showedCache) showLogin("连不上,请确认密钥。");
-    else if (showedCache) startRealtime();
+    if (showedCache) startRealtime();
   }
+  // 开屏直达 Desk（chat 壳在底层,Desk 全屏盖上面;底栏 Chat 可切回聊天）
+  setTimeout(() => { try{ openDesk(); }catch(_){} }, 160);
 }
 
 /* 回前台重同步:iOS 后台会挂起连接 */
