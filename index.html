@@ -508,14 +508,14 @@
     background-position: center;
     box-shadow: 0 12px 24px rgba(24,46,67,0.14);
   }
-  /* 用户名字(小宝)显示 */
-  .row.human.show-human-name .bubble::before{
-    content:"小宝";
-    display:block;
+  /* 用户名字(小宝)显示:放在气泡下方,右侧小字 */
+  .row.human .human-name{
+    flex-basis:100%;
+    text-align:right;
     font-size: clamp(10.5px, 2.7vw, 12px);
     letter-spacing:.04em;
     color: var(--text-faint);
-    margin-bottom: clamp(3px, 1vw, 5px);
+    margin-top: clamp(2px, 0.8vw, 4px);
     font-family: var(--font-en), var(--font-cn);
   }
   .row.ai::before{
@@ -1715,6 +1715,11 @@
     cursor:pointer;
   }
   .dset-pick:active{ transform: scale(.95); }
+  .dset-avatar-preview{
+    flex:0 0 auto; width:34px; height:34px; border-radius:50%;
+    background: url("avatar-sea.png") center/cover, var(--seg-track);
+    border:1px solid var(--card-line);
+  }
 
   /* ── Voice call (speaking overlay · 假按键 / 纯 UI,后端以后接) ── */
   .call-overlay{
@@ -2377,24 +2382,7 @@
         <div class="push-hint" id="brainHint"></div>
       </section>
 
-      <!-- 模型选择（真切换：改后端 loop_config）-->
-      <section class="settings-card">
-        <div class="settings-label">模型选择</div>
-        <div class="segmented" id="modelSeg" role="group" aria-label="模型选择">
-          <button type="button" data-val="deepseek-flash">DS Flash</button>
-          <button type="button" data-val="glm">GLM</button>
-          <button type="button" data-val="__custom__">自定义</button>
-        </div>
-        <div id="modelConfigBox" class="custom-model" style="display:none">
-          <div class="cm-title" id="cmTitle">配置模型</div>
-          <input id="cmUrl" class="cm-input" type="text" placeholder="API地址（中转站填中转地址）">
-          <input id="cmKey" class="cm-input" type="password" placeholder="API Key">
-          <input id="cmModel" class="cm-input" type="text" placeholder="模型名（如 deepseek-flash / glm-4.6）">
-          <button class="cm-save" id="cmSave" type="button">保存并切换</button>
-        </div>
-      </section>
-
-
+      <!-- 模型配置已移到 Desk → 设置 -->
       <!-- 上下文记忆条数（接后端 history_n，真生效）-->
       <section class="settings-card">
         <div class="settings-label">上下文记忆 <i class="info-i" title="每次回复带上多少条历史消息，越多越连贯、越费token">i</i></div>
@@ -2533,32 +2521,32 @@
       <div class="desk-grid">
         <button class="desk-app" type="button" data-desk="listen">
           <span class="desk-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span>
-          <span class="desk-lab">一起听</span>
+          <span class="desk-lab">Listen</span>
         </button>
         <!-- 学习 -->
         <button class="desk-app" type="button" data-desk="learn">
           <span class="desk-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 8.5a8 8 0 0 1-16 0"/><path d="M2 8.5a10 10 0 0 0 20 0"/><path d="M12 3a3 3 0 0 1 3 3"/></svg></span>
-          <span class="desk-lab">学习</span>
+          <span class="desk-lab">Learn</span>
         </button>
         <!-- 共读 -->
         <button class="desk-app" type="button" data-desk="read">
           <span class="desk-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20"/></svg></span>
-          <span class="desk-lab">共读</span>
+          <span class="desk-lab">Read</span>
         </button>
         <!-- 游戏 -->
         <button class="desk-app" type="button" data-desk="play">
           <span class="desk-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12h4m-2-2v4M15 11h.01M18 13h.01"/><path d="M14.5 5H9.5a7.5 7.5 0 0 0 0 15h5a7.5 7.5 0 0 0 0-15z"/></svg></span>
-          <span class="desk-lab">游戏</span>
+          <span class="desk-lab">Play</span>
         </button>
         <!-- 梦境 -->
         <button class="desk-app" type="button" data-desk="dream">
           <span class="desk-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></span>
-          <span class="desk-lab">梦境</span>
+          <span class="desk-lab">Dream</span>
         </button>
         <!-- 信箱 -->
         <button class="desk-app" type="button" data-desk="mail">
           <span class="desk-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.4"/><path d="M3 7.5 12 13l9-5.5"/></svg></span>
-          <span class="desk-lab">信箱</span>
+          <span class="desk-lab">Mail</span>
         </button>
         <!-- MCP 工具 -->
         <button class="desk-app" type="button" data-desk="mcp">
@@ -2568,12 +2556,12 @@
         <!-- 工具 -->
         <button class="desk-app" type="button" data-desk="tools">
           <span class="desk-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4.5 4.5 0 0 0-6 5.6L3 17.6V21h3.4l5.7-5.7a4.5 4.5 0 0 0 5.6-6L14.5 12 12 9.5z"/></svg></span>
-          <span class="desk-lab">工具</span>
+          <span class="desk-lab">Tools</span>
         </button>
         <!-- 设置 -->
         <button class="desk-app" type="button" data-desk="settings">
           <span class="desk-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
-          <span class="desk-lab">设置</span>
+          <span class="desk-lab">Settings</span>
         </button>
       </div>
     </div>
@@ -2609,18 +2597,18 @@
       <button class="learn-back" id="learnBack" type="button" aria-label="返回">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
       </button>
-      <span class="learn-title">学习</span>
+      <span class="learn-title">Learn</span>
     </div>
     <div class="learn-scroll">
       <!-- 番茄钟 / 专注计时 -->
       <section class="learn-card">
         <h2 class="learn-card-h">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex:none;"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5"/><path d="M9 2h6"/></svg>
-          专注计时
+          Focus Timer
         </h2>
         <div class="learn-focus-state">
           <div class="learn-timer" id="learnTimer">25:00</div>
-          <div class="learn-sub" id="learnSub">选择时长，开始专注</div>
+          <div class="learn-sub" id="learnSub">Pick a duration, then start</div>
         </div>
         <div class="learn-dur" id="learnDur">
           <button class="learn-dur-btn" type="button" data-min="5">5 min</button>
@@ -2641,7 +2629,7 @@
       <section class="learn-card">
         <h2 class="learn-card-h">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex:none;"><rect x="3" y="3" width="7" height="7" rx="1.6"/><rect x="14" y="3" width="7" height="7" rx="1.6"/><rect x="3" y="14" width="7" height="7" rx="1.6"/><rect x="14" y="14" width="7" height="7" rx="1.6"/></svg>
-          学习热力图
+          Heatmap
         </h2>
         <div class="learn-heat" id="learnHeat"></div>
         <div class="lh-legend">
@@ -2707,6 +2695,7 @@
             <div class="dset-row-name">选择头像</div>
             <div class="dset-row-sub">从相册导入（方形会裁成圆形）</div>
           </div>
+          <span class="dset-avatar-preview" id="dsetHumanAvatarPreview" aria-hidden="true"></span>
           <button class="dset-pick" id="dsetHumanAvatar" type="button">导入</button>
         </div>
         <!-- 显示用户名字 -->
@@ -2858,7 +2847,7 @@ const CONFIG = {
 };
 const AI_NAME = CONFIG.AI_NAME, HUMAN_NAME = CONFIG.HUMAN_NAME, APP_NAME = CONFIG.APP_NAME;
 
-const API_BASE = "https://api.guhuai724.top/relay";       // same-origin; nginx mounts the relay here (RELAY_PUBLIC_PREFIX)
+const API_BASE = "http://api.guhuai724.top/relay";       // same-origin; nginx mounts the relay here (RELAY_PUBLIC_PREFIX)
 const USE_MOCK  = false;          // true = self-contained demo with fake data (no backend needed)
 const LS_KEY    = "companion_secret";
 
@@ -2903,7 +2892,7 @@ const peerNameEl = $("#peerName"), profilePanel = $("#profilePanel");
 const profileClose = $("#profileClose"), moreBtn = $("#moreBtn");
 const profileAvatarBtn = $("#profileAvatarBtn"), profileNameEl = $("#profileName");
 const profileNameInput = $("#profileNameInput"), profileNameEdit = $("#profileNameEdit");
-const modelSeg = $("#modelSeg"), contextSlider = $("#contextSlider");
+const contextSlider = $("#contextSlider");
 
 const statusCopy = $("#statusCopy"), statusSidEl = $("#statusSid"), statusUsedEl = $("#statusUsed");
 const sessionList = $("#sessionList"), sessionNewBtn = $("#sessionNewBtn");
@@ -3140,7 +3129,7 @@ function learnStop(){
   learnStart.disabled = false;
   learnReset.style.display = "none";
   learnDur.querySelectorAll(".learn-dur-btn").forEach(b => b.disabled = false);
-  learnSub.textContent = "已结束，休息一下吧";
+  learnSub.textContent = "Done — take a break";
   learnSetTimerLabel();
 }
 function learnTick(){
@@ -3168,7 +3157,7 @@ if (learnStart) learnStart.addEventListener("click", () => {
     clearInterval(learnTimerInt); learnTimerInt = null;
     learnRunning = false;
     learnStart.textContent = "继续";
-    learnSub.textContent = "已暂停";
+    learnSub.textContent = "Paused";
     return;
   }
   if (learnRemainSec <= 0){
@@ -3179,7 +3168,7 @@ if (learnStart) learnStart.addEventListener("click", () => {
   learnStart.textContent = "暂停";
   learnReset.style.display = "";
   learnDur.querySelectorAll(".learn-dur-btn").forEach(b => b.disabled = true);
-  learnSub.textContent = "专注中，别分心";
+  learnSub.textContent = "Focusing — stay with it";
   learnSetTimerLabel();
   learnTimerInt = setInterval(learnTick, 1000);
 });
@@ -3191,7 +3180,7 @@ if (learnReset) learnReset.addEventListener("click", () => {
   learnStart.disabled = false;
   learnReset.style.display = "none";
   learnDur.querySelectorAll(".learn-dur-btn").forEach(b => b.disabled = false);
-  learnSub.textContent = "选择时长，开始专注";
+  learnSub.textContent = "Pick a duration, then start";
   learnSetTimerLabel();
 });
 if (learnDur) learnDur.addEventListener("click", (e) => {
@@ -3201,7 +3190,7 @@ if (learnDur) learnDur.addEventListener("click", (e) => {
   const mins = parseInt(btn.dataset.min, 10) || 25;
   learnTotalSec = learnRemainSec = mins * 60;
   learnSetTimerLabel();
-  learnSub.textContent = `已选 ${mins} 分钟，点开始`;
+  learnSub.textContent = `${mins} min selected — tap start`;
 });
 function renderLearnHeat(){
   if (!learnHeat) return;
@@ -3230,6 +3219,7 @@ function renderLearnHeat(){
 const dsetPanel = $("#dsetPanel"), dsetBack = $("#dsetBack");
 const dsetUrl = $("#dsUrl"), dsetKey = $("#dsKey"), dsetModel = $("#dsModel"), dsetSave = $("#dsSave"), dsetHint = $("#dsHint");
 const dsetHumanAvatar = $("#dsetHumanAvatar"), dsetHumanAvatarInput = $("#dsetHumanAvatarInput"), humanAvatarRow = $("#humanAvatarRow");
+const dsetHumanAvatarPreview = $("#dsetHumanAvatarPreview");
 let dsetCloseTimer = null;
 const DISPLAY_KEY = "fatum_display_prefs";
 const HUMAN_AVATAR_KEY = "fatum_human_avatar";
@@ -3283,6 +3273,12 @@ function syncDisplayToggles(){
     btn.setAttribute("aria-pressed", String(on));
     if (key === "showHumanAvatar") humanAvatarRow.style.display = on ? "" : "none";
   });
+  // 头像预览:读已保存的用户头像
+  if (dsetHumanAvatarPreview){
+    let url = "";
+    try{ url = localStorage.getItem(HUMAN_AVATAR_KEY) || ""; }catch(_){}
+    dsetHumanAvatarPreview.style.backgroundImage = url ? `url("${url}")` : "";
+  }
 }
 if (dsetPanel) dsetPanel.addEventListener("click", (e) => {
   const tgl = e.target.closest(".dset-toggle");
@@ -3305,6 +3301,7 @@ if (dsetHumanAvatarInput) dsetHumanAvatarInput.addEventListener("change", () => 
   rd.onload = () => {
     const dataUrl = String(rd.result || "");
     try{ localStorage.setItem(HUMAN_AVATAR_KEY, dataUrl); }catch(_){ showToast("头像过大,保存失败"); return; }
+    if (dsetHumanAvatarPreview) dsetHumanAvatarPreview.style.backgroundImage = `url("${dataUrl}")`;
     applyDisplayPrefs();
     showToast("头像已更新");
   };
@@ -4071,27 +4068,16 @@ function wireSegmented(seg, storeKey){
     try{ localStorage.setItem(storeKey, b.dataset.val); }catch(_){}
   });
 }
-/* 模型选择 —— 真切换：直接调后端 loop_config，让大脑立刻换模型 */
+/* 模型配置 —— 真切换:直接调后端 loop_config(配置入口已移到 Desk → 设置) */
 const PRESET_MODELS = {
   "deepseek-flash": { url: "https://api.deepseek.com/v1", model: "deepseek-flash", label: "DS Flash" },
   "glm":            { url: "https://open.bigmodel.cn/api/paas/v4", model: "glm-4.6",      label: "GLM" },
 };
-const modelConfigBox = $("#modelConfigBox"), cmUrl = $("#cmUrl"), cmKey = $("#cmKey"), cmModel = $("#cmModel"), cmSave = $("#cmSave"), cmTitle = $("#cmTitle");
 let pendingModel = "";  // 当前正在配置的预设键或 __custom__
 function savedModelConf(key){
   try{ return JSON.parse(localStorage.getItem("model_conf_" + key) || "null"); }catch(_){ return null; }
 }
 function saveModelConf(key, conf){ localStorage.setItem("model_conf_" + key, JSON.stringify(conf)); }
-function openConfigBox(key){
-  pendingModel = key;
-  const conf = savedModelConf(key);
-  const preset = PRESET_MODELS[key];
-  cmTitle.textContent = key === "__custom__" ? "自定义模型" : (preset ? "配置 " + preset.label : "配置模型");
-  cmUrl.value = (conf && conf.url) || (preset ? preset.url : "");
-  cmKey.value = (conf && conf.key) || "";
-  cmModel.value = (conf && conf.model) || (preset ? preset.model : "");
-  modelConfigBox.style.display = "flex";
-}
 async function applyModel(key, conf){
   try{
     const r = await fetch(`${API_BASE}/app/loop_config`, {
@@ -4108,48 +4094,6 @@ async function applyModel(key, conf){
     throw _;
   }
 }
-if (modelSeg){
-  // 恢复上次选中的模型高亮
-  (function restoreModelHighlight(){
-    const saved = localStorage.getItem("companion_pick_model");
-    if (saved) modelSeg.querySelectorAll("button").forEach(x => x.classList.toggle("active", x.dataset.val === saved));
-  })();
-  modelSeg.addEventListener("click", async (e) => {
-    const b = e.target.closest("button[data-val]");
-    if (!b) return;
-    const key = b.dataset.val;
-    // 点谁谁亮：先给视觉反馈，再走流程
-    modelSeg.querySelectorAll("button").forEach(x => x.classList.toggle("active", x === b));
-    if (key === "__custom__"){
-      openConfigBox("__custom__");
-      return;
-    }
-    const conf = savedModelConf(key);
-    if (!conf){
-      openConfigBox(key);  // 没配过 → 先配置
-      return;
-    }
-    await applyModel(key, conf);
-  });
-}
-if (cmSave){
-  cmSave.addEventListener("click", async () => {
-    const url = (cmUrl.value || "").trim().replace(/\/+$/, "");
-    const key = (cmKey.value || "").trim();
-    const model = (cmModel.value || "").trim();
-    if (!url || !key || !model){ showToast("三项都要填"); return; }
-    const conf = { url, key, model };
-    try{
-      await applyModel(pendingModel, conf);
-      modelConfigBox.style.display = "none";
-      modelSeg.querySelectorAll("button").forEach(x => x.classList.toggle("active", x.dataset.val === pendingModel));
-      cmUrl.value = cmKey.value = cmModel.value = "";
-      pendingModel = "";
-    }catch(_){}
-  });
-}
-
-
 if (contextSlider){
   const savedContext = localStorage.getItem("companion_pick_context");
   if (savedContext !== null && savedContext !== ""){
@@ -5618,6 +5562,13 @@ function makeMessage(rowData){
     });
   }else fillMeta(metaEl, m.ts, m.from === "human");
   row.appendChild(bubble);
+  // 用户名字:显示在气泡下方(开关 showHumanName 控制)
+  if (m.from === "human" && displayOn("showHumanName")){
+    const nm = document.createElement("div");
+    nm.className = "human-name";
+    nm.textContent = "小宝";
+    row.appendChild(nm);
+  }
   // reaction chips — AI poke (one-way: AI → you), rendered only under your own bubbles; not under the AI's
   const reactions = (m.from === "human" && m.meta && m.meta.reactions && typeof m.meta.reactions === "object") ? m.meta.reactions : null;
   const rxList = reactions ? Object.keys(reactions).map((who) => reactions[who]).filter(Boolean) : [];
