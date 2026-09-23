@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
-<title>Anima</title>
+<title>Fatum Echo</title>
 
 <!-- PWA / iOS -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -18,7 +18,7 @@
 <meta name="theme-color" content="#F4F4F5">
 <!-- iOS launch mode is manifest-only; legacy Apple fullscreen meta breaks bottom viewport. -->
 
-<meta name="apple-mobile-web-app-title" content="Anima">
+<meta name="apple-mobile-web-app-title" content="Fatum Echo">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
 
@@ -111,7 +111,7 @@
     --call-hangup-bg: #cf8d92;
     --call-hangup-shadow: rgba(176,96,104,.34);
   }
-  /* ── ANIMA · 灵魂(通用开源主题) ── 中性冷调,供 fork 使用;只覆盖带色相变量,其余继承 PEARL TIDE */
+  /* ── FATUM ECHO · 命定回响(通用开源主题) ── 中性冷调,供 fork 使用;只覆盖带色相变量,其余继承 PEARL TIDE */
   :root[data-theme="harbor"]{
       --wall-default: var(--wall-harbor);
       --menu-wall-default: var(--menu-wall-harbor);
@@ -463,7 +463,7 @@
     border: none;
   }
 
-  .row{ display:flex; position:relative; margin-top: clamp(14px, 2.2vw, 28px); }
+  .row{ display:flex; flex-wrap:wrap; position:relative; margin-top: clamp(14px, 2.2vw, 28px); }
   .day + .row{ margin-top: clamp(12px, 1.8vw, 20px); }
   .new-divider{
     display:flex;
@@ -487,15 +487,11 @@
   .row.grouped{ margin-top: clamp(4px, 0.8vw, 8px); }
   .row.human{ justify-content: flex-end; }
   .row.ai{ justify-content: flex-start; padding-left: calc(var(--avatar-size) + clamp(10px, 1.6vw, 16px)); }
-  .msg-stack{
-    display:flex; flex-direction:column; align-items:flex-start;
-    max-width:100%; min-width:0;
+  .msg-think{
+    width:100%; min-width:0;
   }
-  .msg-stack > * + *{ margin-top: clamp(6px, 1.2vw, 9px); }
-  .msg-stack .think-block{ margin:0; }
-  .row.think-open .msg-stack{ align-items:center; }
-  .row.think-open .msg-stack .think-block{ width:100%; }
-  .row.think-open .msg-stack .bubble{ align-self:center; }
+  .msg-think .think-block{ margin:0; }
+  .msg-think + .bubble{ margin-top: clamp(7px, 1.2vw, 11px); }
   .row.ai::before{
     content:"";
     position:absolute;
@@ -1343,6 +1339,84 @@
   .menu-panel .menu-scroll{ padding-bottom: clamp(10px, 3vw, 16px); }
   .menu-tabbar{ border-radius: 18px 18px 0 0; margin-top: clamp(6px, 2vw, 12px); }
 
+  /* ── Desk (desktop-style launcher · 底栏 Desk 进入) ── */
+  .desk-panel{
+    position: fixed; inset: 0; z-index: 195;
+    pointer-events: none;
+    transform: translateX(100%);
+    opacity: 0;
+    transition: transform .34s var(--ease-soft), opacity .26s ease;
+  }
+  .desk-panel.open{ transform: none; opacity: 1; pointer-events: auto; }
+  .desk-page{
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    background-color: var(--bg);
+    background-image: var(--wall-default);
+    background-size: cover; background-position: center;
+    overflow: hidden;
+  }
+  .desk-page::before{
+    content:""; position:absolute; inset:0; background: var(--scrim); pointer-events:none;
+  }
+  .desk-topbar{
+    position: relative; z-index:1;
+    flex: 0 0 auto;
+    display:flex; align-items:center; gap:10px;
+    height: calc(56px + env(safe-area-inset-top));
+    padding: env(safe-area-inset-top) var(--side-pad) 0;
+  }
+  .desk-back{
+    width:40px; height:40px; flex:none;
+    border:0; border-radius:50%; padding:0; margin-left:-6px;
+    background: transparent; color: var(--text);
+    display:grid; place-items:center; cursor:pointer;
+    transition: transform .15s ease;
+  }
+  .desk-back:active{ transform: scale(.9); }
+  .desk-back svg{ width:24px; height:24px; display:block; }
+  .desk-title{
+    font-family: var(--font-en), var(--font-cn);
+    font-size: clamp(15px, 4vw, 18px); letter-spacing:.06em; color: var(--text);
+  }
+  .desk-scroll{
+    position: relative; z-index:1;
+    flex: 1 1 auto; overflow-y: auto;
+    -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+    padding: clamp(16px, 4vw, 24px) var(--side-pad) calc(30px + env(safe-area-inset-bottom));
+  }
+  .desk-scroll::-webkit-scrollbar{ width:0; height:0; }
+  .desk-grid{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(18px, 6vw, 30px) clamp(12px, 4vw, 22px);
+    justify-items:center;
+    padding-top: clamp(10px, 3vw, 18px);
+  }
+  .desk-app{
+    display:flex; flex-direction:column; align-items:center; gap: clamp(8px, 2vw, 11px);
+    border:0; background:transparent; padding:0;
+    width:100%; cursor:pointer; color: var(--text);
+    font: inherit; text-align:center;
+  }
+  .desk-app:active{ transform: scale(.92); transition: transform .12s ease; }
+  .desk-ic{
+    width: clamp(56px, 16vw, 72px); height: clamp(56px, 16vw, 72px);
+    border-radius: clamp(16px, 4.5vw, 22px);           /* 圆角方形 */
+    background: var(--card-bg);
+    border:1px solid var(--card-line);
+    box-shadow: var(--card-shadow);
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    display:grid; place-items:center;
+    color: var(--accent, var(--text));
+  }
+  .desk-ic svg{ width: clamp(24px, 7vw, 30px); height: clamp(24px, 7vw, 30px); display:block; }
+  .desk-lab{
+    font-family: var(--font-cn);
+    font-size: clamp(12px, 3.2vw, 13.5px); color: var(--text-soft); line-height:1.2;
+    max-width:100%; white-space:nowrap;
+  }
+
   /* ── Voice call (speaking overlay · 假按键 / 纯 UI,后端以后接) ── */
   .call-overlay{
     position: fixed; inset: 0; z-index: 150;
@@ -1901,12 +1975,6 @@
       <span class="status" id="status">connecting…</span>
     </div>
     <div class="header-actions" aria-label="通话和更多操作">
-      <button class="topbtn sessions" id="sessionBtn" type="button" aria-label="API 窗口" title="API 窗口">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="14" height="14" rx="3"/><path d="M8 3h9a4 4 0 0 1 4 4v9"/></svg>
-      </button>
-      <button class="topbtn terminal" id="terminalBtn" type="button" aria-label="终端视图" title="终端视图">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m6 8 4 4-4 4"/><path d="M12 16h6"/></svg>
-      </button>
       <button class="topbtn call" id="callBtn" type="button" aria-label="语音通话（占位）" title="语音通话">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v2.4a2 2 0 0 1-2.2 2 19.4 19.4 0 0 1-8.4-3 19 19 0 0 1-5.9-5.9 19.4 19.4 0 0 1-3-8.4A2 2 0 0 1 4.5 2h2.4a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.6a2 2 0 0 1-.5 2.1L8 9.4a15.6 15.6 0 0 0 6.6 6.6l1-1a2 2 0 0 1 2.1-.5c.8.3 1.7.5 2.6.6a2 2 0 0 1 1.7 1.8z"/></svg>
       </button>
@@ -1916,13 +1984,6 @@
     </div>
     <button class="avatar hidden" id="avatarBtn" aria-label="查看个人信息" title="个人信息"></button>
   </header>
-  <div class="session-pop" id="sessionPop" hidden>
-    <div class="session-head">
-      <div class="session-title">API 窗口</div>
-      <button class="session-new" id="sessionNewBtn" type="button">新对话</button>
-    </div>
-    <div class="session-list" id="sessionList"></div>
-  </div>
   <main class="scroll" id="scroll">
     <div class="empty" id="empty">
       <div class="orb"></div>
@@ -2059,6 +2120,22 @@
 
 
 
+      <!-- API 窗口(原顶栏 sessionBtn 挪入)-->
+      <section class="settings-card">
+        <div class="settings-label">API 窗口 <i class="info-i" title="切换对话窗口,每个窗口是独立的上下文">i</i></div>
+        <div class="session-list" id="sessionList" style="margin-top:10px;"></div>
+        <button class="session-new" id="sessionNewBtn" type="button" style="width:100%; margin-top:10px; padding:9px 0; border-radius:12px;">新对话</button>
+      </section>
+      <!-- 终端视图(原顶栏 terminalBtn 挪入)-->
+      <section class="settings-card">
+        <div class="settings-label">终端 <i class="info-i" title="在同一对话里的伪终端视图,可以跑命令">i</i></div>
+        <button class="action-row" id="terminalBtn" type="button" style="margin-top:10px; border:0; box-shadow:none; background:var(--seg-track);">
+          <span class="action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m6 8 4 4-4 4"/><path d="M12 16h6"/></svg></span>
+          <span class="action-name">打开终端视图</span>
+          <span class="action-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
+        </button>
+      </section>
+
       <!-- status -->
       <div class="action-row status">
         <span class="action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg></span>
@@ -2089,7 +2166,7 @@
 
       <!-- hero -->
       <div class="menu-hero">
-        <h1 class="menu-title">Anima</h1>
+        <h1 class="menu-title">Fatum Echo</h1>
         <p class="menu-since">since 2026/01/01</p>
         <div class="menu-days"><span class="num" id="menuDays">113</span><span class="lab">Days together</span></div>
       </div>
@@ -2126,37 +2203,7 @@
           <span class="menu-copy"><span class="menu-name">Room</span><span class="menu-sub">Our quiet place.</span></span>
           <span class="menu-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
         </button>
-        <button class="menu-item" type="button" data-menu="reading">
-          <span class="menu-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20"/></svg></span>
-          <span class="menu-dot"></span>
-          <span class="menu-copy"><span class="menu-name">Read</span><span class="menu-sub">The pages we share.</span></span>
-          <span class="menu-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
-        </button>
-        <button class="menu-item" type="button" data-menu="game">
-          <span class="menu-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12h4m-2-2v4M15 11h.01M18 13h.01"/><path d="M14.5 5H9.5a7.5 7.5 0 0 0 0 15h5a7.5 7.5 0 0 0 0-15z"/></svg></span>
-          <span class="menu-dot"></span>
-          <span class="menu-copy"><span class="menu-name">Play</span><span class="menu-sub">Little worlds together.</span></span>
-          <span class="menu-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
-        </button>
-        <button class="menu-item" type="button" data-menu="dream">
-          <span class="menu-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></span>
-          <span class="menu-dot"></span>
-          <span class="menu-copy"><span class="menu-name">Dream</span><span class="menu-sub">Where we dream.</span></span>
-          <span class="menu-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
-        </button>
-        <button class="menu-item" type="button" data-menu="tools">
-          <span class="menu-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4.5 4.5 0 0 0-6 5.6L3 17.6V21h3.4l5.7-5.7a4.5 4.5 0 0 0 5.6-6L14.5 12 12 9.5z"/></svg></span>
-          <span class="menu-dot"></span>
-          <span class="menu-copy"><span class="menu-name">Tools</span><span class="menu-sub">Everyday tools.</span></span>
-          <span class="menu-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
-        </button>
-        <button class="menu-item" type="button" data-menu="settings">
-          <span class="menu-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
-          <span class="menu-dot"></span>
-          <span class="menu-copy"><span class="menu-name">Settings</span><span class="menu-sub">Personal settings.</span></span>
-          <span class="menu-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
-        </button>
-      </nav>
+        </nav>
 
       <!-- footer -->
       <div class="menu-foot">in endless tides, we find each other.</div>
@@ -2184,6 +2231,66 @@
         <span class="tab-lab">Memory</span>
       </button>
     </nav>
+  </div>
+</div>
+<!-- ── Desk (desktop-style launcher · 底栏 Desk 进入,图标为圆角方形) ── -->
+<div class="desk-panel hidden" id="deskPanel" role="dialog" aria-modal="true" aria-label="桌面">
+  <div class="desk-page">
+    <div class="desk-topbar">
+      <button class="desk-back" id="deskBack" type="button" aria-label="返回">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <span class="desk-title">Desk</span>
+    </div>
+    <div class="desk-scroll">
+      <div class="desk-grid">
+        <!-- 一起听 -->
+        <button class="desk-app" type="button" data-desk="listen">
+          <span class="desk-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span>
+          <span class="desk-lab">一起听</span>
+        </button>
+        <!-- 学习 -->
+        <button class="desk-app" type="button" data-desk="learn">
+          <span class="desk-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 8.5a8 8 0 0 1-16 0"/><path d="M2 8.5a10 10 0 0 0 20 0"/><path d="M12 3a3 3 0 0 1 3 3"/></svg></span>
+          <span class="desk-lab">学习</span>
+        </button>
+        <!-- 共读 -->
+        <button class="desk-app" type="button" data-desk="read">
+          <span class="desk-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20"/></svg></span>
+          <span class="desk-lab">共读</span>
+        </button>
+        <!-- 游戏 -->
+        <button class="desk-app" type="button" data-desk="play">
+          <span class="desk-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12h4m-2-2v4M15 11h.01M18 13h.01"/><path d="M14.5 5H9.5a7.5 7.5 0 0 0 0 15h5a7.5 7.5 0 0 0 0-15z"/></svg></span>
+          <span class="desk-lab">游戏</span>
+        </button>
+        <!-- 梦境 -->
+        <button class="desk-app" type="button" data-desk="dream">
+          <span class="desk-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></span>
+          <span class="desk-lab">梦境</span>
+        </button>
+        <!-- 信箱 -->
+        <button class="desk-app" type="button" data-desk="mail">
+          <span class="desk-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.4"/><path d="M3 7.5 12 13l9-5.5"/></svg></span>
+          <span class="desk-lab">信箱</span>
+        </button>
+        <!-- MCP 工具 -->
+        <button class="desk-app" type="button" data-desk="mcp">
+          <span class="desk-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4.5 4.5 0 0 0-6 5.6L3 17.6V21h3.4l5.7-5.7a4.5 4.5 0 0 0 5.6-6L14.5 12 12 9.5z"/><path d="M15 4l2-2 2 2-2 2z"/></svg></span>
+          <span class="desk-lab">MCP</span>
+        </button>
+        <!-- 工具 -->
+        <button class="desk-app" type="button" data-desk="tools">
+          <span class="desk-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4.5 4.5 0 0 0-6 5.6L3 17.6V21h3.4l5.7-5.7a4.5 4.5 0 0 0 5.6-6L14.5 12 12 9.5z"/></svg></span>
+          <span class="desk-lab">工具</span>
+        </button>
+        <!-- 设置 -->
+        <button class="desk-app" type="button" data-desk="settings">
+          <span class="desk-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+          <span class="desk-lab">设置</span>
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 <!-- ── Voice call (speaking overlay · 假按键,纯 UI) ── -->
@@ -2290,7 +2397,7 @@
 
 <script>
 /* ════════════════════════════════════════════════════════════════
-   Anima — PWA chat shell
+   Fatum Echo — PWA chat shell
    A private 1:1 chat front-end for a person and their AI companion,
    talking to a self-hosted relay backend. No domain or secret is baked in.
    Backend contract: GET /app/history · SSE /app/stream · POST /app/send · /healthz
@@ -2298,7 +2405,7 @@
 
 /* ── identity / branding — the ONE place to set names + app title ── */
 const CONFIG = {
-  APP_NAME:   "Anima",  // app + menu title (and manifest, set there too)
+  APP_NAME:   "Fatum Echo",  // app + menu title (and manifest, set there too)
   AI_NAME:    "顾淮",       // your AI companion's display name (header / call / push / narration)
   HUMAN_NAME: "小宝",           // how you're referred to in narration (rarely shown)
   SINCE:      "2026/07/24",   // "together since" date YYYY/MM/DD for the menu counter ("" hides it)
@@ -2353,7 +2460,7 @@ const profileNameInput = $("#profileNameInput"), profileNameEdit = $("#profileNa
 const modelSeg = $("#modelSeg"), contextSlider = $("#contextSlider");
 
 const statusCopy = $("#statusCopy"), statusSidEl = $("#statusSid"), statusUsedEl = $("#statusUsed");
-const sessionBtn = $("#sessionBtn"), sessionPop = $("#sessionPop"), sessionList = $("#sessionList"), sessionNewBtn = $("#sessionNewBtn");
+const sessionList = $("#sessionList"), sessionNewBtn = $("#sessionNewBtn");
 const terminalBtn = $("#terminalBtn"), terminalPanel = $("#terminalPanel"), terminalBack = $("#terminalBack"), terminalLog = $("#terminalLog"), terminalForm = $("#terminalForm"), terminalInput = $("#terminalInput"), terminalSession = $("#terminalSession");
 const brainSeg = $("#brainSeg"), brainHint = $("#brainHint");
 
@@ -2449,6 +2556,7 @@ function openProfile(){
   // double rAF so the slide-in runs from the off-screen state
   requestAnimationFrame(() => requestAnimationFrame(() => profilePanel.classList.add("open")));
   refreshContextStatus();
+  renderSessionList();
 }
 function closeProfile(){
   if (!profilePanel) return;
@@ -2505,6 +2613,33 @@ function closeMenu(){
   clearTimeout(menuCloseTimer);
   menuCloseTimer = setTimeout(() => menuPanel.classList.add("hidden"), 400);
 }
+/* ── Desk (desktop-style launcher · 底栏 Desk 进入) ── */
+const deskPanel = $("#deskPanel"), deskBack = $("#deskBack");
+let deskCloseTimer = null;
+function openDesk(){
+  if (!deskPanel) return;
+  clearTimeout(deskCloseTimer);
+  deskPanel.classList.remove("hidden");
+  requestAnimationFrame(() => requestAnimationFrame(() => deskPanel.classList.add("open")));
+}
+function closeDesk(){
+  if (!deskPanel) return;
+  deskPanel.classList.remove("open");
+  clearTimeout(deskCloseTimer);
+  deskCloseTimer = setTimeout(() => deskPanel.classList.add("hidden"), 360);
+}
+if (deskBack) deskBack.addEventListener("click", closeDesk);
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && deskPanel && !deskPanel.classList.contains("hidden")) closeDesk();
+});
+if (deskPanel) deskPanel.addEventListener("click", (e) => {
+  const app = e.target.closest(".desk-app");
+  if (!app) return;
+  const which = app.dataset.desk;
+  if (which === "settings"){ closeDesk(); openProfile(); }
+  else if (which === "tools"){ closeDesk(); openProfile(); }
+  else showToast("即将开放");        // listen / learn / read / play / dream / mail / mcp … placeholder
+});
 refreshDays();
 if (backBtn) backBtn.addEventListener("click", openMenu);
 if (menuPanel){
@@ -2520,6 +2655,7 @@ if (menuPanel){
     if (tab){
       menuPanel.querySelectorAll(".tab-item").forEach(t => t.classList.toggle("active", t === tab));
       if (tab.dataset.tab === "chat") closeMenu();         // bottom tab → back to chat
+      else if (tab.dataset.tab === "desk"){ closeMenu(); openDesk(); }
       else showToast("即将开放");
     }
   });
@@ -3572,8 +3708,7 @@ function renderSessionList(){
     </div>`;
   }).join("");
 }
-function setSessionPopover(open){
-  if (sessionPop) sessionPop.hidden = !open;
+function setSessionPopover(open){ // 已挪入配置页,无需悬浮层
 }
 async function loadSessions(){
   if (USE_MOCK || !secret){ activeApiSession = LEGACY_SESSION_ID; renderSessionList(); return; }
@@ -3596,7 +3731,6 @@ async function activateSession(sessionId, { reload = true } = {}){
   try{ localStorage.setItem(SESSION_PICK_KEY, activeApiSession); }catch(_){}
   resetServerHistoryCache();
   renderSessionList();
-  setSessionPopover(false);
   const sid = effectiveApiSession();
   if (sid){
     try{
@@ -3626,7 +3760,6 @@ async function createNewSession(){
     try{ localStorage.setItem(SESSION_PICK_KEY, activeApiSession); }catch(_){}
     resetServerHistoryCache();
     renderSessionList();
-    setSessionPopover(false);
     startChat([]);
     showToast("已开启新 API 窗口");
   }catch(_){
@@ -3655,12 +3788,7 @@ async function renameSession(sessionId){
     showToast("改名失败");
   }
 }
-if (sessionBtn) sessionBtn.addEventListener("click", (e) => {
-  e.stopPropagation();
-  renderSessionList();
-  setSessionPopover(sessionPop ? sessionPop.hidden : false);
-});
-if (sessionNewBtn) sessionNewBtn.addEventListener("click", createNewSession);
+if (sessionNewBtn) sessionNewBtn.addEventListener("click", () => { createNewSession(); closeProfile(); });
 if (sessionList) sessionList.addEventListener("click", (e) => {
   const renameBtn = e.target.closest("button[data-rename]");
   if (renameBtn){
@@ -3670,14 +3798,11 @@ if (sessionList) sessionList.addEventListener("click", (e) => {
     return;
   }
   const row = e.target.closest("[data-session]");
-  if (row) activateSession(row.dataset.session || "");
+  if (row){
+    activateSession(row.dataset.session || "");
+    closeProfile();
+  }
 });
-document.addEventListener("click", (e) => {
-  if (!sessionPop || sessionPop.hidden) return;
-  if (sessionPop.contains(e.target) || (sessionBtn && sessionBtn.contains(e.target))) return;
-  setSessionPopover(false);
-});
-
 const HISTORY_FETCH_LIMIT = 500;
 let serverHistoryCache = [];
 let serverHistoryComplete = false;
@@ -4292,7 +4417,7 @@ async function terminalSend(){
     setMessage({ ...optimistic, status:"failed" });
   }
 }
-if (terminalBtn) terminalBtn.addEventListener("click", () => setTerminalOpen(true));
+if (terminalBtn) terminalBtn.addEventListener("click", () => { setTerminalOpen(true); closeProfile(); });
 if (terminalBack) terminalBack.addEventListener("click", () => setTerminalOpen(false));
 if (terminalForm) terminalForm.addEventListener("submit", (e) => { e.preventDefault(); terminalSend(); });
 if (terminalInput){
@@ -4565,6 +4690,9 @@ function estimatedHeight(row){
   const m = row.message;
   const atts = (m && m.meta && Array.isArray(m.meta.attachments)) ? m.meta.attachments : [];
   let h = (row.grouped ? 8 : 22) + 30;                        // 行间距 + 气泡纵向 padding + meta 行
+  if (!row.grouped && m && m.from === "ai" && m.meta && m.meta.reasoning && String(m.meta.reasoning).trim()){
+    h += DEFAULT_THINK_HEIGHT + 8;                            // 折叠思考块 + 与气泡间距;展开态由 measureVisibleRows 实测纠偏
+  }
   for (const a of atts) h += a.kind === "image" ? estImageHeight(a) : 56;
   h += estTextHeight(m && m.text);
   return Math.max(h, DEFAULT_ROW_HEIGHT);
@@ -4758,12 +4886,13 @@ function makeMessage(rowData){
     freshKeys.delete(m._key);
     row.addEventListener("animationend", () => row.classList.remove(cls), { once:true });
   }
-  // 思考块:来自 meta.reasoning(后端把一轮思考合并进回复),画在气泡上方
-  const stack = document.createElement("div");
-  stack.className = "msg-stack";
+  // 思考块:来自 meta.reasoning(后端把一轮思考合并进回复),作为独立行画在气泡上方
   const reason = (m.from === "ai" && m.meta && m.meta.reasoning) ? String(m.meta.reasoning).trim() : "";
   if (reason && rowData.reasonFirst !== false && !rowData.grouped){
-    stack.appendChild(makeThinkBlock(m, reason));
+    const thinkWrap = document.createElement("div");
+    thinkWrap.className = "msg-think";
+    thinkWrap.appendChild(makeThinkBlock(m, reason));
+    row.appendChild(thinkWrap);
   }
   const bubble = document.createElement("div");
   bubble.className = "bubble";
@@ -4786,8 +4915,7 @@ function makeMessage(rowData){
       doSend();
     });
   }else fillMeta(metaEl, m.ts, m.from === "human");
-  stack.appendChild(bubble);
-  row.appendChild(stack);
+  row.appendChild(bubble);
   // reaction chips — AI poke (one-way: AI → you), rendered only under your own bubbles; not under the AI's
   const reactions = (m.from === "human" && m.meta && m.meta.reactions && typeof m.meta.reactions === "object") ? m.meta.reactions : null;
   const rxList = reactions ? Object.keys(reactions).map((who) => reactions[who]).filter(Boolean) : [];
