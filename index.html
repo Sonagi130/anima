@@ -493,7 +493,7 @@
     flex-wrap: wrap;
     align-items: flex-start;
     gap: 0 clamp(10px, 1.6vw, 16px);
-    padding-left: calc(var(--avatar-size) + clamp(10px, 1.6vw, 16px));
+    padding-left: 0;
     margin-left: calc(5px - var(--side-pad));
   }
   /* thinking 独占第一行,缩进对齐气泡(左缘在头像右侧) */
@@ -502,6 +502,7 @@
     order: -1;
     width: 100%;
     min-width: 0;
+    margin-left: calc(var(--avatar-size) + clamp(10px, 1.6vw, 16px));
     margin-bottom: clamp(4px, 0.8vw, 8px);
   }
   .msg-think .think-block{ margin:0; }
@@ -537,9 +538,8 @@
   }
   .row.ai::before{
     content:"";
-    position: absolute;
-    left: 0;
-    top: clamp(5px, 1vw, 9px);
+    flex: 0 0 auto;
+    align-self: flex-start;
     width: var(--avatar-size);
     height: var(--avatar-size);
     border-radius: 50%;
@@ -1210,7 +1210,7 @@
     .avatar{ right: 16px; top: calc(env(safe-area-inset-top) + 16px); }
     .row{ margin-top: 18px; }
     .row.grouped{ margin-top: 8px; }
-    .row.ai{ padding-left: 42px; }
+    .row.ai{ padding-left: 0; }
     .bubble{ max-width: min(63vw, 520px); font-size: 13.5px; line-height: 1.56; padding: 8px 13px 8px; }
     .meta{ font-size: 11px; margin-left: 8px; }
     .day{ font-size: 12px; }
