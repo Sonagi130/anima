@@ -487,8 +487,25 @@
   }
   .row.grouped{ margin-top: clamp(4px, 0.8vw, 8px); }
   .row.human{ justify-content: flex-end; }
-  .row.ai{ justify-content: flex-start; padding-left: calc(var(--avatar-size) + clamp(10px, 1.6vw, 16px)); }
-  .row.ai > .msg-think{ flex: 0 1 auto; }
+  .row.ai{
+    justify-content: flex-start;
+    display:flex;
+    align-items: flex-end;
+    gap: clamp(10px, 1.6vw, 16px);
+    padding-left: 0;
+  }
+  .row.ai .ai-stack{
+    flex: 1 1 auto;
+    min-width: 0;
+    display:flex;
+    flex-direction:column;
+    align-items: flex-start;
+    gap: clamp(4px, 0.8vw, 8px);
+  }
+  .row.ai .ai-stack > .bubble{
+    flex: none;
+    width: auto;
+  }
   .msg-think{
     width: auto; min-width: 0;
     flex: 0 1 auto;
@@ -531,9 +548,9 @@
   }
   .row.ai::before{
     content:"";
-    position:absolute;
-    left:0;
-    top: clamp(5px, 1vw, 9px);
+    flex: 0 0 auto;
+    align-self: flex-end;
+    margin-bottom: clamp(2px, 0.6vw, 5px);
     width: var(--avatar-size);
     height: var(--avatar-size);
     border-radius: 50%;
@@ -5448,7 +5465,7 @@ function makeThinkBlock(m, reasoningText){
   block.innerHTML = `
     <button class="think-toggle" type="button" aria-expanded="false" aria-label="展开思绪">
       <span class="think-rule" aria-hidden="true"></span>
-      <span class="think-caption"><span class="think-caption-star" aria-hidden="true">✦</span><span>${escapeHtml(AI_NAME)} · thinking</span><span class="think-state" aria-hidden="true"></span></span>
+      <span class="think-caption"><span class="think-caption-star" aria-hidden="true">✦</span><span>thinking</span><span class="think-state" aria-hidden="true"></span></span>
     </button>
     <div class="think-body" hidden>
       <div class="think-text"><span class="think-copy">${renderText(reasoningText)}</span></div>
@@ -5583,6 +5600,13 @@ function makeMessage(rowData){
     freshKeys.delete(m._key);
     row.addEventListener("animationend", () => row.classList.remove(cls), { once:true });
   }
+  // AI 消息:头像(::before) + 右侧列(think 在上,bubble 在下)
+  let aiStack = null;
+  if (m.from === "ai"){
+    aiStack = document.createElement("div");
+    aiStack.className = "ai-stack";
+    row.appendChild(aiStack);
+  }
   const bubble = document.createElement("div");
   bubble.className = "bubble";
   const atts = (m.meta && Array.isArray(m.meta.attachments)) ? m.meta.attachments : [];
@@ -5604,14 +5628,14 @@ function makeMessage(rowData){
       doSend();
     });
   }else fillMeta(metaEl, m.ts, m.from === "human");
-  row.appendChild(bubble);
-  // 思考块:来自 meta.reasoning,作为气泡上方的小字提示(think 在上,工具在下)
+  (aiStack || row).appendChild(bubble);
+  // 思考块:来自 meta.reasoning,放在气泡上方(think 在上,工具在下)
   const reason = (m.from === "ai" && m.meta && m.meta.reasoning) ? String(m.meta.reasoning).trim() : "";
   if (reason && displayOn("showThinking") && rowData.reasonFirst !== false && !rowData.grouped){
     const thinkWrap = document.createElement("div");
     thinkWrap.className = "msg-think";
     thinkWrap.appendChild(makeThinkBlock(m, reason));
-    row.insertBefore(thinkWrap, bubble);
+    (aiStack || row).insertBefore(thinkWrap, bubble);
   }
   // 用户名字:显示在气泡下方(开关 showHumanName 控制)
   if (m.from === "human" && displayOn("showHumanName")){
