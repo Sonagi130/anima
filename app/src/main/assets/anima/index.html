@@ -487,31 +487,8 @@
   }
   .row.grouped{ margin-top: clamp(4px, 0.8vw, 8px); }
   .row.human{ justify-content: flex-end; }
-  .row.ai{
-    justify-content: flex-start;
-    display:flex;
-    align-items: flex-start;
-    gap: clamp(4px, 0.8vw, 8px) clamp(10px, 1.6vw, 16px);
-  }
-  .row.ai > .bubble,
-  .row.ai > .msg-think,
-  .row.ai > .act-block,
-  .row.ai > .reactions{
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-  .row.ai .ai-stack{
-    flex: 1 1 auto;
-    min-width: 0;
-    display:flex;
-    flex-direction:column;
-    align-items: flex-start;
-    gap: clamp(4px, 0.8vw, 8px);
-  }
-  .row.ai .ai-stack > .bubble{
-    flex: none;
-    width: auto;
-  }
+  .row.ai{ justify-content: flex-start; padding-left: calc(var(--avatar-size) + clamp(10px, 1.6vw, 16px)); }
+  .row.ai > .msg-think{ flex: 0 1 auto; }
   .msg-think{
     width: auto; min-width: 0;
     flex: 0 1 auto;
@@ -554,9 +531,9 @@
   }
   .row.ai::before{
     content:"";
-    flex: 0 0 auto;
-    align-self: flex-start;
-    margin-top: clamp(5px, 1vw, 9px);
+    position:absolute;
+    left:0;
+    top: clamp(5px, 1vw, 9px);
     width: var(--avatar-size);
     height: var(--avatar-size);
     border-radius: 50%;
@@ -5606,13 +5583,6 @@ function makeMessage(rowData){
     freshKeys.delete(m._key);
     row.addEventListener("animationend", () => row.classList.remove(cls), { once:true });
   }
-  // AI 消息:右侧纵向列(气泡在上,思考/工具提示在气泡下方,头像固定左侧)
-  let aiStack = null;
-  if (m.from === "ai"){
-    aiStack = document.createElement("div");
-    aiStack.className = "ai-stack";
-    row.appendChild(aiStack);
-  }
   const bubble = document.createElement("div");
   bubble.className = "bubble";
   const atts = (m.meta && Array.isArray(m.meta.attachments)) ? m.meta.attachments : [];
@@ -5634,14 +5604,14 @@ function makeMessage(rowData){
       doSend();
     });
   }else fillMeta(metaEl, m.ts, m.from === "human");
-  (aiStack || row).appendChild(bubble);
-  // 思考块:来自 meta.reasoning,作为气泡下方的小字提示(参考图样式:图标+文字一行)
+  row.appendChild(bubble);
+  // 思考块:来自 meta.reasoning,作为气泡上方的小字提示(think 在上,工具在下)
   const reason = (m.from === "ai" && m.meta && m.meta.reasoning) ? String(m.meta.reasoning).trim() : "";
   if (reason && displayOn("showThinking") && rowData.reasonFirst !== false && !rowData.grouped){
     const thinkWrap = document.createElement("div");
     thinkWrap.className = "msg-think";
     thinkWrap.appendChild(makeThinkBlock(m, reason));
-    (aiStack || row).appendChild(thinkWrap);
+    row.insertBefore(thinkWrap, bubble);
   }
   // 用户名字:显示在气泡下方(开关 showHumanName 控制)
   if (m.from === "human" && displayOn("showHumanName")){
