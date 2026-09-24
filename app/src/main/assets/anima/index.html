@@ -1402,13 +1402,21 @@
     height: calc(64px + env(safe-area-inset-top));
     padding: env(safe-area-inset-top) var(--side-pad) 0;
   }
+  .desk-clock-zone{
+    position: relative; z-index:1;
+    flex: 0 0 auto;
+    display:flex; align-items:center; justify-content:center;
+    padding: clamp(20px, 5vw, 40px) var(--side-pad) 0;
+    margin-top: clamp(48px, 12vh, 110px);
+  }
   .desk-clock{
     font-family: var(--font-en), var(--font-cn);
-    font-size: clamp(28px, 8vw, 40px);
-    font-weight: 700;
-    letter-spacing: .04em;
-    color: var(--text);
-    text-shadow: 0 2px 16px rgba(0,0,0,.18);
+    font-size: clamp(56px, 16vw, 92px);
+    font-weight: 200;
+    letter-spacing: .02em;
+    color: var(--text-soft);
+    opacity: .78;
+    text-shadow: 0 2px 24px rgba(0,0,0,.10);
   }
   .desk-back{
     position: absolute;
@@ -2539,10 +2547,12 @@
 <div class="desk-panel hidden" id="deskPanel" role="dialog" aria-modal="true" aria-label="桌面">
   <div class="desk-page">
     <div class="desk-topbar">
-      <span class="desk-clock" id="deskClock">--:--</span>
       <button class="desk-back" id="deskBack" type="button" aria-label="返回">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
       </button>
+    </div>
+    <div class="desk-clock-zone">
+      <span class="desk-clock" id="deskClock">--:--</span>
     </div>
     <div class="desk-scroll">
       <div class="desk-spacer"></div>
