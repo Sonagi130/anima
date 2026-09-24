@@ -490,37 +490,23 @@
   .row.ai{
     justify-content: flex-start;
     display:flex;
-    align-items: flex-end;
-    gap: clamp(10px, 1.6vw, 16px);
-    padding-left: 0;
-  }
-  .row.ai .ai-stack{
-    flex: 1 1 auto;
-    min-width: 0;
-    display:flex;
-    flex-direction:column;
+    flex-wrap: wrap;
     align-items: flex-start;
-    gap: clamp(4px, 0.8vw, 8px);
-  }
-  .row.ai .ai-stack > .bubble{
-    flex: none;
-    width: auto;
+    padding-left: calc(var(--avatar-size) + clamp(10px, 1.6vw, 16px));
   }
   .msg-think{
-    width: auto; min-width: 0;
-    flex: 0 1 auto;
+    flex: 1 1 100%;
+    width: 100%;
+    min-width: 0;
+    order: -1;
+    margin-bottom: clamp(2px, 0.6vw, 6px);
   }
   .msg-think .think-block{ margin:0; }
-  .msg-think + .bubble{ margin-top: clamp(7px, 1.2vw, 11px); }
-  /* AI 行内:头像固定锚定在行首,思考块与气泡在头像右侧排布 */
-  .row.ai > .msg-think,
-  .row.ai > .bubble,
-  .row.ai > .act-block,
-  .row.ai > .reactions{
+  .msg-think + .bubble{ margin-top: 0; }
+  .row.ai > .bubble{
     flex: 1 1 auto;
     min-width: 0;
   }
-  .row.ai > .msg-think{ flex: 0 1 auto; }
   /* 用户(小宝)消息右侧头像:开关 showHumanAvatar 控制 */
   .row.human.has-human-avatar{ padding-right: calc(var(--avatar-size) + clamp(10px, 1.6vw, 16px)); }
   .row.human.has-human-avatar.show-human-avatar::after{
@@ -548,9 +534,9 @@
   }
   .row.ai::before{
     content:"";
-    flex: 0 0 auto;
-    align-self: flex-end;
-    margin-bottom: clamp(2px, 0.6vw, 5px);
+    position:absolute;
+    left:0;
+    top: clamp(2px, 0.6vw, 6px);
     width: var(--avatar-size);
     height: var(--avatar-size);
     border-radius: 50%;
@@ -5600,13 +5586,6 @@ function makeMessage(rowData){
     freshKeys.delete(m._key);
     row.addEventListener("animationend", () => row.classList.remove(cls), { once:true });
   }
-  // AI 消息:头像(::before) + 右侧列(think 在上,bubble 在下)
-  let aiStack = null;
-  if (m.from === "ai"){
-    aiStack = document.createElement("div");
-    aiStack.className = "ai-stack";
-    row.appendChild(aiStack);
-  }
   const bubble = document.createElement("div");
   bubble.className = "bubble";
   const atts = (m.meta && Array.isArray(m.meta.attachments)) ? m.meta.attachments : [];
@@ -5628,14 +5607,14 @@ function makeMessage(rowData){
       doSend();
     });
   }else fillMeta(metaEl, m.ts, m.from === "human");
-  (aiStack || row).appendChild(bubble);
-  // 思考块:来自 meta.reasoning,放在气泡上方(think 在上,工具在下)
+  row.appendChild(bubble);
+  // 思考块:独占一行在气泡上方(think 上,头像+气泡 下)
   const reason = (m.from === "ai" && m.meta && m.meta.reasoning) ? String(m.meta.reasoning).trim() : "";
   if (reason && displayOn("showThinking") && rowData.reasonFirst !== false && !rowData.grouped){
     const thinkWrap = document.createElement("div");
     thinkWrap.className = "msg-think";
     thinkWrap.appendChild(makeThinkBlock(m, reason));
-    (aiStack || row).insertBefore(thinkWrap, bubble);
+    row.insertBefore(thinkWrap, bubble);
   }
   // 用户名字:显示在气泡下方(开关 showHumanName 控制)
   if (m.from === "human" && displayOn("showHumanName")){
