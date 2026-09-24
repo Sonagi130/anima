@@ -494,7 +494,7 @@
     align-items: flex-start;
     gap: 0 clamp(10px, 1.6vw, 16px);
     padding-left: 0;
-    margin-left: calc(-1 * clamp(6px, 1.4vw, 14px));
+    margin-left: -5px;
   }
   /* thinking 独占第一行,从头像上方开始 */
   .row.ai > .msg-think{
@@ -716,7 +716,7 @@
     line-height: 1;
     transform: translateY(-.02em);
   }
-  .think-block.open .think-caption-star{ display: none; }
+  .think-block.open .think-caption-star{ display: inline; }
   .think-state::before{ content: "✧"; }
   .think-block.open .think-state::before{ content: "✦"; }
   .think-body[hidden]{ display: none !important; }
