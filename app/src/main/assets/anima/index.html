@@ -494,7 +494,7 @@
     align-items: flex-start;
     gap: 0 clamp(10px, 1.6vw, 16px);
     padding-left: 0;
-    margin-left: calc(5px - var(--side-pad));
+    margin-left: calc(10px - var(--side-pad));
   }
   /* thinking 独占第一行,缩进对齐气泡(左缘在头像右侧) */
   .row.ai > .msg-think{
@@ -516,7 +516,7 @@
   .row.human.has-human-avatar.show-human-avatar::after{
     content:"";
     position:absolute;
-    right: calc(var(--side-pad) - 5px);
+    right: calc(var(--side-pad) - 10px);
     top: clamp(5px, 1vw, 9px);
     width: var(--avatar-size);
     height: var(--avatar-size);
