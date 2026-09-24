@@ -516,7 +516,7 @@
   .row.human.has-human-avatar.show-human-avatar::after{
     content:"";
     position:absolute;
-    right:0;
+    right: calc(var(--side-pad) - 5px);
     top: clamp(5px, 1vw, 9px);
     width: var(--avatar-size);
     height: var(--avatar-size);
