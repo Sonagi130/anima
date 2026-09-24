@@ -3112,7 +3112,7 @@ function closeLearn(){
   clearTimeout(learnCloseTimer);
   learnCloseTimer = setTimeout(() => learnPanel.classList.add("hidden"), 360);
 }
-if (learnBack) learnBack.addEventListener("click", closeLearn);
+if (learnBack) learnBack.addEventListener("click", () => { closeLearn(); openDesk(); });
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && learnPanel && !learnPanel.classList.contains("hidden")) closeLearn();
 });
