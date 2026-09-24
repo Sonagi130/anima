@@ -493,10 +493,10 @@
     flex-wrap: wrap;
     align-items: flex-start;
     gap: 0 clamp(10px, 1.6vw, 16px);
-    padding-left: 0;
+    padding-left: calc(var(--avatar-size) + clamp(10px, 1.6vw, 16px));
     margin-left: calc(5px - var(--side-pad));
   }
-  /* thinking 独占第一行,从头像上方开始 */
+  /* thinking 独占第一行,缩进对齐气泡(左缘在头像右侧) */
   .row.ai > .msg-think{
     flex: 1 1 100%;
     order: -1;
@@ -537,9 +537,9 @@
   }
   .row.ai::before{
     content:"";
-    flex: 0 0 auto;
-    align-self: flex-start;
-    margin-top: clamp(2px, 0.6vw, 6px);
+    position: absolute;
+    left: 0;
+    top: clamp(5px, 1vw, 9px);
     width: var(--avatar-size);
     height: var(--avatar-size);
     border-radius: 50%;
