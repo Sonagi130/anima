@@ -494,6 +494,7 @@
     align-items: flex-start;
     gap: 0 clamp(10px, 1.6vw, 16px);
     padding-left: 0;
+    margin-left: calc(-1 * clamp(6px, 1.4vw, 14px));
   }
   /* thinking 独占第一行,从头像上方开始 */
   .row.ai > .msg-think{
@@ -666,8 +667,11 @@
     width: 100%;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     gap: clamp(9px, 1.8vw, 14px);
+  }
+  .think-block.open .think-caption{
+    justify-content: center;
   }
   .think-toggle:hover .think-caption{ color: var(--accent); }
   .think-toggle:active{ transform: translateY(1px); }
