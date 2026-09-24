@@ -487,7 +487,31 @@
   }
   .row.grouped{ margin-top: clamp(4px, 0.8vw, 8px); }
   .row.human{ justify-content: flex-end; }
-  .row.ai{ justify-content: flex-start; gap: clamp(4px, 0.8vw, 8px) clamp(10px, 1.6vw, 16px); }
+  .row.ai{
+    justify-content: flex-start;
+    display:flex;
+    align-items: flex-start;
+    gap: clamp(4px, 0.8vw, 8px) clamp(10px, 1.6vw, 16px);
+  }
+  .row.ai > .bubble,
+  .row.ai > .msg-think,
+  .row.ai > .act-block,
+  .row.ai > .reactions{
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .row.ai .ai-stack{
+    flex: 1 1 auto;
+    min-width: 0;
+    display:flex;
+    flex-direction:column;
+    align-items: flex-start;
+    gap: clamp(4px, 0.8vw, 8px);
+  }
+  .row.ai .ai-stack > .bubble{
+    flex: none;
+    width: auto;
+  }
   .msg-think{
     width: auto; min-width: 0;
     flex: 0 1 auto;
@@ -631,8 +655,8 @@
     margin-bottom: clamp(18px, 2.8vw, 28px);
   }
   .think-block{
-    width: min(61vw, 506px);
-    max-width: min(61vw, 506px);
+    width: auto;
+    max-width: min(100%, 560px);
     color: var(--think-body);
     text-align: left;
     animation: pop .24s cubic-bezier(.2,.8,.2,1) both;
@@ -640,7 +664,7 @@
   .think-block.open{
     width: 100%;
     max-width: min(100%, 760px);
-    text-align: center;
+    text-align: left;
   }
   .think-toggle{
     appearance: none;
@@ -660,7 +684,7 @@
     width: 100%;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     gap: clamp(9px, 1.8vw, 14px);
   }
   .think-toggle:hover .think-caption{ color: var(--accent); }
@@ -694,6 +718,10 @@
     line-height: 1.1;
     letter-spacing: .08em;
     transition: color var(--motion-fast) var(--ease-soft);
+  }
+  .think-caption > span:not(.think-caption-star):not(.think-state){
+    color: var(--think-label);
+    font-size: .92em;
   }
   .think-caption-star,
   .think-state{
@@ -5443,7 +5471,7 @@ function makeThinkBlock(m, reasoningText){
   block.innerHTML = `
     <button class="think-toggle" type="button" aria-expanded="false" aria-label="展开思绪">
       <span class="think-rule" aria-hidden="true"></span>
-      <span class="think-caption"><span class="think-caption-star" aria-hidden="true">✦</span><span>thinking</span><span class="think-state" aria-hidden="true"></span></span>
+      <span class="think-caption"><span class="think-caption-star" aria-hidden="true">✦</span><span>${escapeHtml(AI_NAME)} · thinking</span><span class="think-state" aria-hidden="true"></span></span>
     </button>
     <div class="think-body" hidden>
       <div class="think-text"><span class="think-copy">${renderText(reasoningText)}</span></div>
@@ -5578,13 +5606,12 @@ function makeMessage(rowData){
     freshKeys.delete(m._key);
     row.addEventListener("animationend", () => row.classList.remove(cls), { once:true });
   }
-  // 思考块:来自 meta.reasoning(后端把一轮思考合并进回复),作为独立行画在气泡上方
-  const reason = (m.from === "ai" && m.meta && m.meta.reasoning) ? String(m.meta.reasoning).trim() : "";
-  if (reason && displayOn("showThinking") && rowData.reasonFirst !== false && !rowData.grouped){
-    const thinkWrap = document.createElement("div");
-    thinkWrap.className = "msg-think";
-    thinkWrap.appendChild(makeThinkBlock(m, reason));
-    row.appendChild(thinkWrap);
+  // AI 消息:右侧纵向列(气泡在上,思考/工具提示在气泡下方,头像固定左侧)
+  let aiStack = null;
+  if (m.from === "ai"){
+    aiStack = document.createElement("div");
+    aiStack.className = "ai-stack";
+    row.appendChild(aiStack);
   }
   const bubble = document.createElement("div");
   bubble.className = "bubble";
@@ -5607,7 +5634,15 @@ function makeMessage(rowData){
       doSend();
     });
   }else fillMeta(metaEl, m.ts, m.from === "human");
-  row.appendChild(bubble);
+  (aiStack || row).appendChild(bubble);
+  // 思考块:来自 meta.reasoning,作为气泡下方的小字提示(参考图样式:图标+文字一行)
+  const reason = (m.from === "ai" && m.meta && m.meta.reasoning) ? String(m.meta.reasoning).trim() : "";
+  if (reason && displayOn("showThinking") && rowData.reasonFirst !== false && !rowData.grouped){
+    const thinkWrap = document.createElement("div");
+    thinkWrap.className = "msg-think";
+    thinkWrap.appendChild(makeThinkBlock(m, reason));
+    (aiStack || row).appendChild(thinkWrap);
+  }
   // 用户名字:显示在气泡下方(开关 showHumanName 控制)
   if (m.from === "human" && displayOn("showHumanName")){
     const nm = document.createElement("div");
