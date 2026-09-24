@@ -487,12 +487,28 @@
   }
   .row.grouped{ margin-top: clamp(4px, 0.8vw, 8px); }
   .row.human{ justify-content: flex-end; }
-  .row.ai{ justify-content: flex-start; padding-left: calc(var(--avatar-size) + clamp(10px, 1.6vw, 16px)); }
-  .msg-think{
-    width:100%; min-width:0;
+  .row.ai{
+    justify-content: flex-start;
+    display:flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0 clamp(10px, 1.6vw, 16px);
+    padding-left: 0;
+  }
+  /* thinking 独占第一行,从头像上方开始 */
+  .row.ai > .msg-think{
+    flex: 1 1 100%;
+    order: -1;
+    width: 100%;
+    min-width: 0;
+    margin-bottom: clamp(4px, 0.8vw, 8px);
   }
   .msg-think .think-block{ margin:0; }
-  .msg-think + .bubble{ margin-top: clamp(7px, 1.2vw, 11px); }
+  .msg-think + .bubble{ margin-top: 0; }
+  .row.ai > .bubble{
+    flex: 1 1 auto;
+    min-width: 0;
+  }
   /* 用户(小宝)消息右侧头像:开关 showHumanAvatar 控制 */
   .row.human.has-human-avatar{ padding-right: calc(var(--avatar-size) + clamp(10px, 1.6vw, 16px)); }
   .row.human.has-human-avatar.show-human-avatar::after{
@@ -520,9 +536,9 @@
   }
   .row.ai::before{
     content:"";
-    position:absolute;
-    left:0;
-    top: clamp(5px, 1vw, 9px);
+    flex: 0 0 auto;
+    align-self: flex-start;
+    margin-top: clamp(2px, 0.6vw, 6px);
     width: var(--avatar-size);
     height: var(--avatar-size);
     border-radius: 50%;
@@ -5600,7 +5616,7 @@ function makeMessage(rowData){
     const thinkWrap = document.createElement("div");
     thinkWrap.className = "msg-think";
     thinkWrap.appendChild(makeThinkBlock(m, reason));
-    row.appendChild(thinkWrap);
+    row.insertBefore(thinkWrap, bubble);
   }
   // 用户名字:显示在气泡下方(开关 showHumanName 控制)
   if (m.from === "human" && displayOn("showHumanName")){
