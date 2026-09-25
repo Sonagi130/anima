@@ -3048,6 +3048,7 @@ function applyIdentity(){
 let profileCloseTimer = null;
 function openProfile(){
   if (!profilePanel) return;
+  _navPush("profile");
   cancelNameEdit();
   clearTimeout(profileCloseTimer);
   profilePanel.classList.remove("hidden");
@@ -3100,6 +3101,7 @@ function refreshDays(){
 let menuCloseTimer = null;
 function openMenu(){
   if (!menuPanel) return;
+  _navPush("menu");
   refreshDays();
   syncTabHighlight();
   clearTimeout(menuCloseTimer);
@@ -3114,6 +3116,37 @@ function closeMenu(){
 }
 /* ── Desk (desktop-style launcher · 底栏 Desk 进入) ── */
 const deskPanel = $("#deskPanel"), deskBack = $("#deskBack"), deskClock = $("#deskClock");
+/* 导航栈:管理 Android 返回键逐级回退 + 再按一次退出 */
+let _navStack = [];
+function _navPush(view){
+  if (_navStack[_navStack.length - 1] === view) return;
+  _navStack.push(view);
+  try{ history.pushState({ nav: view }, ""); }catch(_){}
+}
+function _navDropTo(view){
+  const i = _navStack.lastIndexOf(view);
+  if (i >= 0) _navStack.length = i + 1;
+  else _navStack = [view];
+}
+function _navTop(){ return _navStack[_navStack.length - 1] || null; }
+function _isOpen(panel){ return panel && !panel.classList.contains("hidden") && panel.classList.contains("open"); }
+/* Android 返回键:由原生 onBackPressed 调用。返回 true=已消费(关了面板), false=可退出 */
+window.__handleAndroidBack = function(){
+  // 面板由顶层往下逐级关
+  if (_isOpen(dsetPanel)){ closeDeskSettings(); openDesk(); return true; }
+  if (_isOpen(learnPanel)){ closeLearn(); openDesk(); return true; }
+  if (_isOpen(menuPanel)){ closeMenu(); return true; }
+  if (_isOpen(profilePanel)){ closeProfile(); return true; }
+  if (_isOpen(deskPanel)){ closeDesk(); return true; }
+  // 已到 chat 层:false 让原生处理"再按一次退出"
+  return false;
+};
+/* popstate:纯前端后退(如浏览器手势)兜底,避免和原生返回键冲突 */
+window.addEventListener("popstate", (e) => {
+  if (window.__handleAndroidBack && window.__handleAndroidBack()) {
+    try{ history.pushState({}, ""); }catch(_){}
+  }
+});
 function tickDeskClock(){
   if (!deskClock) return;
   const now = new Date();
@@ -3126,6 +3159,7 @@ let deskCloseTimer = null;
 function openDesk(){
   if (!deskPanel) return;
   if (appEl) appEl.classList.remove("hidden");          // 开屏直达:保证底层 chat 壳在,Desk 全屏盖上面
+  _navPush("desk");
   clearTimeout(deskCloseTimer);
   deskPanel.classList.remove("hidden");
   requestAnimationFrame(() => requestAnimationFrame(() => deskPanel.classList.add("open")));
@@ -3168,6 +3202,7 @@ let learnRemainSec = 0, learnTotalSec = 0, learnRunning = false;
 const LEARN_KEY = "fatum_learn_log";   // { "YYYY-MM-DD": 分钟数 }
 function openLearn(){
   if (!learnPanel) return;
+  _navPush("learn");
   renderLearnHeat();
   clearTimeout(learnCloseTimer);
   learnPanel.classList.remove("hidden");
@@ -3313,6 +3348,7 @@ function setDisplayPref(key, val){
 function displayOn(key){ return displayPrefs()[key] !== false; }
 function openDeskSettings(){
   if (!dsetPanel) return;
+  _navPush("settings");
   // 模型配置框预填当前自定义/最近配置
   const conf = savedModelConf(pendingModel && pendingModel !== "__custom__" ? pendingModel : "__custom__")
     || savedModelConf("__custom__");
