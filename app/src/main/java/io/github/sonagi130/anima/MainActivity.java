@@ -29,7 +29,7 @@ public class MainActivity extends Activity {
 
     /* 本地资源域名：跟网页版同源，localStorage 无缝继承，数据不用迁移 */
     private static final String HOST = "sonagi130.github.io";
-    private static final String BASE = "/anima/";
+    private static final String BASE = "/fatum-echo/";
 
     @Override
     protected void onCreate(Bundle b) {
@@ -245,35 +245,12 @@ public class MainActivity extends Activity {
                 }
             });
         }
-    
-        @android.webkit.JavascriptInterface
-        public void exitApp() {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() { finish(); }
-            });
-        }
-}
+    }
 
-    private long lastBackMs = 0;
     @Override
     public void onBackPressed() {
-        // 先让前端处理:返回 true 表示已消费(关了面板),false 表示该退出了
-        if (web != null) {
-            web.evaluateJavascript("window.__handleAndroidBack && window.__handleAndroidBack()", new ValueCallback<String>() {
-                @Override
-                public void onReceiveValue(String v) {
-                    if (v != null && v.contains("true")) return;
-                    // 前端没消费:再按一次退出
-                    long now = System.currentTimeMillis();
-                    if (now - lastBackMs < 2000) {
-                        finish();
-                    } else {
-                        lastBackMs = now;
-                        android.widget.Toast.makeText(MainActivity.this, "再按一次退出应用", android.widget.Toast.LENGTH_SHORT).show();
-                    }
-                }
-            });
+        if (web != null && web.canGoBack()) {
+            web.goBack();
         } else {
             super.onBackPressed();
         }
