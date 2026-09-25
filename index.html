@@ -2405,7 +2405,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5l-8.8 8.8a5 5 0 0 1-7.1-7.1l8.8-8.8a3.3 3.3 0 0 1 4.7 4.7l-8.6 8.6a1.6 1.6 0 0 1-2.3-2.3l8-8"/></svg>
       </button>
       <input type="file" id="clipInput" multiple class="hidden" aria-hidden="true">
-      <textarea id="input" rows="1" placeholder="Write a letter..." enterkeyhint="send"></textarea>
+      <textarea id="input" rows="1" placeholder="Write a letter..." enterkeyhint="enter"></textarea>
       <button class="emojibtn" id="emojiBtn" aria-label="表情" title="表情">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.3a4.2 4.2 0 0 0 7 0"/><line x1="9" y1="9.3" x2="9" y2="10"/><line x1="15" y1="9.3" x2="15" y2="10"/></svg>
       </button>
@@ -6856,7 +6856,7 @@ inputEl.addEventListener("input", () => {
   micBtn.classList.add("hidden");
 });
 inputEl.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && !e.shiftKey && !composing){
+  if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && !composing){
     e.preventDefault();
     doSend();
   }
