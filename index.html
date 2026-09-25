@@ -2794,6 +2794,55 @@
     </div>
   </div>
 </div>
+<!-- ── Tools 工具面板 (Desk → Tools,本地生活工具,与 MCP 分开) ── -->
+<div class="mcp-panel hidden" id="toolsPanel" role="dialog" aria-modal="true" aria-label="生活工具">
+  <div class="mcp-page">
+    <div class="mcp-topbar">
+      <button class="mcp-back" id="toolsBack" type="button" aria-label="返回">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <span class="mcp-title">Tools</span>
+    </div>
+    <div class="mcp-scroll">
+      <section class="mcp-card">
+        <div class="mcp-card-h">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex:none;"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9.5h18M8 3v4M16 3v4"/></svg>
+          待办清单
+        </div>
+        <div class="mcp-hint" style="margin-bottom:10px;color:var(--text-soft);font-size:12.5px;line-height:1.5;">记在本机，不占服务器。到点会提醒你。</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <input id="todoInput" type="text" placeholder="写个待办…" style="flex:1;background:var(--card-bg);border:1px solid var(--card-line);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--text);">
+          <button id="todoAdd" type="button" style="background:var(--accent);border:0;border-radius:12px;padding:10px 16px;font-size:14px;color:#fff;flex:none;">＋</button>
+        </div>
+        <div id="todoList" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </section>
+      <section class="mcp-card">
+        <div class="mcp-card-h">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex:none;"><path d="M12 3.5c.8 5 3.5 7.7 8.5 8.5-5 .8-7.7 3.5-8.5 8.5-.8-5-3.5-7.7-8.5-8.5 5-.8 7.7-3.5 8.5-8.5Z"/></svg>
+          速记便签
+        </div>
+        <div class="mcp-hint" style="margin-bottom:10px;color:var(--text-soft);font-size:12.5px;line-height:1.5;">随手记，存在本机。</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <input id="noteInput" type="text" placeholder="记一句…" style="flex:1;background:var(--card-bg);border:1px solid var(--card-line);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--text);">
+          <button id="noteAdd" type="button" style="background:var(--accent);border:0;border-radius:12px;padding:10px 16px;font-size:14px;color:#fff;flex:none;">＋</button>
+        </div>
+        <div id="noteList" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </section>
+      <section class="mcp-card">
+        <div class="mcp-card-h">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex:none;"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+          生理期记录
+        </div>
+        <div class="mcp-hint" style="margin-bottom:10px;color:var(--text-soft);font-size:12.5px;line-height:1.5;">只存本机，记录你的日子。</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;">
+          <input id="periodDate" type="date" style="flex:1;background:var(--card-bg);border:1px solid var(--card-line);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--text);">
+          <button id="periodAdd" type="button" style="background:var(--accent);border:0;border-radius:12px;padding:10px 16px;font-size:14px;color:#fff;flex:none;">记</button>
+        </div>
+        <div id="periodInfo" style="font-size:13px;color:var(--text-soft);line-height:1.6;"></div>
+      </section>
+    </div>
+  </div>
+</div>
 <!-- ── Desk 设置 (Desk → 设置:模型配置 + 聊天显示开关) ── -->
 <div class="dset-panel hidden" id="dsetPanel" role="dialog" aria-modal="true" aria-label="设置">
   <div class="dset-page">
@@ -3239,6 +3288,7 @@ function _isOpen(panel){ return panel && !panel.classList.contains("hidden") && 
 /* Android 返回键:由原生 onBackPressed 调用。返回 true=已消费(关了面板), false=可退出 */
 window.__handleAndroidBack = function(){
   // 面板由顶层往下逐级关
+  if (_isOpen(toolsPanel)){ closeToolsPanel(); openDesk(); return true; }
   if (_isOpen(mcpPanel)){ closeMcpPanel(); openDesk(); return true; }
   if (_isOpen(dsetPanel)){ closeDeskSettings(); openDesk(); return true; }
   if (_isOpen(learnPanel)){ closeLearn(); openDesk(); return true; }
@@ -3298,7 +3348,7 @@ if (deskPanel) deskPanel.addEventListener("click", (e) => {
   if (which === "learn"){ closeDesk(); openLearn(); }
   else if (which === "settings"){ closeDesk(); openDeskSettings(); }
   else if (which === "mcp"){ closeDesk(); openMcpPanel(); }
-  else if (which === "tools"){ closeDesk(); openMcpPanel(); }
+  else if (which === "tools"){ closeDesk(); openToolsPanel(); }
   else if (which === "read"){ closeDesk(); location.assign("http://api.guhuai724.top/read/"); }
   else showToast("即将开放");        // listen / play / dream / mail … placeholder
 });
@@ -3597,6 +3647,90 @@ function closeMcpPanel(){
   clearTimeout(mcpCloseTimer);
   mcpCloseTimer = setTimeout(() => mcpPanel.classList.add("hidden"), 360);
 }
+/* ── Tools 生活工具面板 (Desk → Tools,本地,与 MCP 分开) ── */
+const toolsPanel = $("#toolsPanel"), toolsBack = $("#toolsBack");
+const todoInput = $("#todoInput"), todoAdd = $("#todoAdd"), todoList = $("#todoList");
+const noteInput = $("#noteInput"), noteAdd = $("#noteAdd"), noteList = $("#noteList");
+const periodDate = $("#periodDate"), periodAdd = $("#periodAdd"), periodInfo = $("#periodInfo");
+const TODO_KEY = "fatum_todo", NOTE_KEY = "fatum_notes", PERIOD_KEY = "fatum_period";
+let toolsCloseTimer = null;
+function openToolsPanel(){
+  if (!toolsPanel) return;
+  _navPush("tools");
+  renderTodos(); renderNotes(); renderPeriod();
+  clearTimeout(toolsCloseTimer);
+  toolsPanel.classList.remove("hidden");
+  requestAnimationFrame(() => requestAnimationFrame(() => toolsPanel.classList.add("open")));
+}
+function closeToolsPanel(){
+  if (!toolsPanel) return;
+  toolsPanel.classList.remove("open");
+  clearTimeout(toolsCloseTimer);
+  toolsCloseTimer = setTimeout(() => toolsPanel.classList.add("hidden"), 360);
+}
+if (toolsBack) toolsBack.addEventListener("click", () => { closeToolsPanel(); openDesk(); });
+function loadArr(k){ try{ return JSON.parse(localStorage.getItem(k) || "[]"); }catch(_){ return []; } }
+function saveArr(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
+function renderTodos(){
+  if (!todoList) return;
+  const arr = loadArr(TODO_KEY);
+  todoList.innerHTML = arr.length ? arr.map((t, i) => `
+    <div style="display:flex;align-items:center;gap:8px;background:var(--card-bg);border:1px solid var(--card-line);border-radius:12px;padding:10px 12px;">
+      <span style="flex:1;font-size:14px;color:var(--text);${t.done ? "text-decoration:line-through;opacity:.5;" : ""}">${escapeHtml(t.text)}</span>
+      <button type="button" data-i="${i}" data-act="toggle" style="background:none;border:0;font-size:16px;color:var(--accent);padding:2px 6px;">${t.done ? "↺" : "✓"}</button>
+      <button type="button" data-i="${i}" data-act="del" style="background:none;border:0;font-size:16px;color:var(--text-faint);padding:2px 6px;">✕</button>
+    </div>`).join("") : `<div style="color:var(--text-faint);font-size:13px;padding:4px 0;">还没有待办</div>`;
+  todoList.querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+    const arr = loadArr(TODO_KEY), i = +b.dataset.i;
+    if (b.dataset.act === "toggle"){ arr[i].done = !arr[i].done; }
+    else { arr.splice(i, 1); }
+    saveArr(TODO_KEY, arr); renderTodos();
+  }));
+}
+function renderNotes(){
+  if (!noteList) return;
+  const arr = loadArr(NOTE_KEY);
+  noteList.innerHTML = arr.length ? arr.slice().reverse().map((n, idx) => {
+    const realIdx = arr.length - 1 - idx;
+    return `
+    <div style="display:flex;align-items:flex-start;gap:8px;background:var(--card-bg);border:1px solid var(--card-line);border-radius:12px;padding:10px 12px;">
+      <span style="flex:1;font-size:13.5px;color:var(--text);line-height:1.5;">${escapeHtml(n.text)}</span>
+      <span style="font-size:11px;color:var(--text-faint);flex:none;padding-top:2px;">${n.ts}</span>
+      <button type="button" data-i="${realIdx}" data-act="delnote" style="background:none;border:0;font-size:14px;color:var(--text-faint);padding:0 4px;">✕</button>
+    </div>`;}).join("") : `<div style="color:var(--text-faint);font-size:13px;padding:4px 0;">还没有便签</div>`;
+  noteList.querySelectorAll("button[data-act=delnote]").forEach(b => b.addEventListener("click", () => {
+    const arr = loadArr(NOTE_KEY); arr.splice(+b.dataset.i, 1); saveArr(NOTE_KEY, arr); renderNotes();
+  }));
+}
+function renderPeriod(){
+  if (!periodInfo) return;
+  const arr = loadArr(PERIOD_KEY);
+  if (!arr.length){ periodInfo.textContent = "还没记录过。来了就记一下。"; return; }
+  const last = arr[arr.length - 1];
+  const lastD = new Date(last + "T00:00:00");
+  const today = new Date(); today.setHours(0,0,0,0);
+  const diff = Math.round((today - lastD) / 86400000);
+  let msg = `上次记录：${last}（${diff} 天前）`;
+  if (diff <= 0) msg = `今天（${last}）记录在案`;
+  else if (diff <= 7) msg += "，快到日子了，注意保暖";
+  else if (diff > 35) msg += "，有点久了，要不要记一笔？";
+  periodInfo.textContent = msg;
+}
+if (todoAdd) todoAdd.addEventListener("click", () => {
+  const v = (todoInput.value || "").trim(); if (!v) return;
+  const arr = loadArr(TODO_KEY); arr.push({ text: v, done: false }); saveArr(TODO_KEY, arr);
+  todoInput.value = ""; renderTodos();
+});
+if (noteAdd) noteAdd.addEventListener("click", () => {
+  const v = (noteInput.value || "").trim(); if (!v) return;
+  const arr = loadArr(NOTE_KEY); arr.push({ text: v, ts: new Date().toLocaleString("zh-CN", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }) }); saveArr(NOTE_KEY, arr);
+  noteInput.value = ""; renderNotes();
+});
+if (periodAdd) periodAdd.addEventListener("click", () => {
+  const v = (periodDate.value || "").trim(); if (!v) return;
+  const arr = loadArr(PERIOD_KEY); if (arr[arr.length - 1] === v) return; arr.push(v); saveArr(PERIOD_KEY, arr);
+  renderPeriod();
+});
 if (mcpBack) mcpBack.addEventListener("click", () => { closeMcpPanel(); openDesk(); });
 async function loadMcpTools(){
   if (!mcpToolList && !mcpPanelListBase && !mcpPanelListMusic) return;
