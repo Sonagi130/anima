@@ -245,12 +245,35 @@ public class MainActivity extends Activity {
                 }
             });
         }
-    }
+    
+        @android.webkit.JavascriptInterface
+        public void exitApp() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() { finish(); }
+            });
+        }
+}
 
+    private long lastBackMs = 0;
     @Override
     public void onBackPressed() {
-        if (web != null && web.canGoBack()) {
-            web.goBack();
+        // 先让前端处理:返回 true 表示已消费(关了面板),false 表示该退出了
+        if (web != null) {
+            web.evaluateJavascript("window.__handleAndroidBack && window.__handleAndroidBack()", new ValueCallback<String>() {
+                @Override
+                public void onReceiveValue(String v) {
+                    if (v != null && v.contains("true")) return;
+                    // 前端没消费:再按一次退出
+                    long now = System.currentTimeMillis();
+                    if (now - lastBackMs < 2000) {
+                        finish();
+                    } else {
+                        lastBackMs = now;
+                        android.widget.Toast.makeText(MainActivity.this, "再按一次退出应用", android.widget.Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
         } else {
             super.onBackPressed();
         }
