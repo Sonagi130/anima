@@ -2600,8 +2600,8 @@
       <!-- footer -->
       <div class="menu-foot">in endless tides, we find each other.</div>
     </div>
-    <!-- bottom tab bar: Chat · diary · Desk · Calendar · Memory -->
-    <nav class="menu-tabbar" aria-label="快捷入口">
+    <!-- bottom tab bar: Chat · diary · Desk · Calendar · Memory (私密空间配置页已取消底栏) -->
+    <nav class="menu-tabbar" aria-label="快捷入口" style="display:none">
       <button class="tab-item" type="button" data-tab="chat">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.3 7.6L3 21l1.9-5.7A8.5 8.5 0 1 1 21 11.5Z"/></svg>
         <span class="tab-lab">Chat</span>
@@ -3273,6 +3273,7 @@ function closeMenu(){
 const deskPanel = $("#deskPanel"), deskBack = $("#deskBack"), deskClock = $("#deskClock");
 /* 导航栈:管理 Android 返回键逐级回退 + 再按一次退出 */
 let _navStack = [];
+let _chatFromDesk = false;   // chat 层是否由 Desk 底栏进入(返回键回 Desk)
 function _navPush(view){
   if (_navStack[_navStack.length - 1] === view) return;
   _navStack.push(view);
@@ -3295,6 +3296,12 @@ window.__handleAndroidBack = function(){
   if (_isOpen(menuPanel)){ closeMenu(); return true; }
   if (_isOpen(profilePanel)){ closeProfile(); return true; }
   if (_isOpen(deskPanel)){ closeDesk(); return true; }
+  // chat 层:从 Desk 底栏进入的,退一次回 Desk;否则退出
+  if (_chatFromDesk){
+    _chatFromDesk = false;
+    openDesk();
+    return true;
+  }
   // 已到 chat 层:false 让原生处理"再按一次退出"
   return false;
 };
@@ -3337,7 +3344,7 @@ if (deskTabbar) deskTabbar.addEventListener("click", (e) => {
   const tab = e.target.closest(".tab-item");
   if (!tab) return;
   deskTabbar.querySelectorAll(".tab-item").forEach(t => t.classList.toggle("active", t === tab));
-  if (tab.dataset.dtab === "chat"){ closeDesk(); }
+  if (tab.dataset.dtab === "chat"){ closeDesk(); _chatFromDesk = true; _navDropTo("desk"); _navPush("chat"); }
   else if (tab.dataset.dtab === "desk"){ /* 已在 Desk */ }
   else showToast("即将开放");
 });
@@ -3826,7 +3833,7 @@ if (menuPanel){
     if (tab){
       menuPanel.querySelectorAll(".tab-item").forEach(t => t.classList.toggle("active", t === tab));
       if (tab.dataset.tab === "chat") closeMenu();         // bottom tab → back to chat
-      else if (tab.dataset.tab === "desk"){ closeMenu(); openDesk(); }
+      else if (tab.dataset.tab === "desk"){ closeMenu(); _chatFromDesk = true; openDesk(); }
       else showToast("即将开放");
     }
   });
