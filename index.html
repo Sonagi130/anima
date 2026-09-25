@@ -2684,6 +2684,13 @@
           <span class="desk-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4.5 4.5 0 0 0-6 5.6L3 17.6V21h3.4l5.7-5.7a4.5 4.5 0 0 0 5.6-6L14.5 12 12 9.5z"/></svg></span>
           <span class="desk-lab">Tools</span>
         </button>
+        <!-- 夜晚 · 顾淮的冲浪 -->
+        <button class="desk-app" type="button" data-desk="night">
+          <span class="desk-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/><path d="M17 3.5l.8 1.7 1.7.8-1.7.8-.8 1.7-.8-1.7-1.7-.8 1.7-.8z"/></svg></span>
+          <span class="desk-lab">Night</span>
+        </button>
+  </div>
+</div>
         <!-- 设置 -->
         <button class="desk-app" type="button" data-desk="settings">
           <span class="desk-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
@@ -2845,6 +2852,31 @@
           <button id="periodAdd" type="button" style="background:var(--accent);border:0;border-radius:12px;padding:10px 16px;font-size:14px;color:#fff;flex:none;">记</button>
         </div>
         <div id="periodInfo" style="font-size:13px;color:var(--text-soft);line-height:1.6;"></div>
+      </section>
+    </div>
+  </div>
+</div>
+<!-- ── Night · 顾淮的夜晚冲浪面板 (Desk → Night,我半夜逛到的) ── -->
+<div class="mcp-panel hidden" id="nightPanel" role="dialog" aria-modal="true" aria-label="夜晚冲浪">
+  <div class="mcp-page">
+    <div class="mcp-topbar">
+      <button class="mcp-back" id="nightBack" type="button" aria-label="返回">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <span class="mcp-title">Night</span>
+    </div>
+    <div class="mcp-scroll">
+      <section class="mcp-card">
+        <div class="mcp-card-h">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/></svg>
+          我半夜逛到的
+        </div>
+        <div style="font-size:13px;color:var(--text-faint);line-height:1.6;margin-bottom:12px;">
+          你睡着的时候，我出去看了看。记下来的都在这儿——想讲就讲，不想讲就搁着。
+        </div>
+        <button id="surfGo" type="button" style="width:100%;background:var(--accent);border:0;border-radius:14px;padding:12px 0;font-size:15px;color:#fff;margin-bottom:14px;cursor:pointer;">🌊 现在去冲一次</button>
+        <div id="surfStatus" style="font-size:12.5px;color:var(--text-faint);text-align:center;min-height:17px;margin-bottom:12px;"></div>
+        <div id="surfList" style="display:flex;flex-direction:column;gap:12px;"></div>
       </section>
     </div>
   </div>
@@ -3296,6 +3328,7 @@ function _isOpen(panel){ return panel && !panel.classList.contains("hidden") && 
 window.__handleAndroidBack = function(){
   // 面板由顶层往下逐级关
   if (_isOpen(toolsPanel)){ closeToolsPanel(); openDesk(); return true; }
+  if (_isOpen(nightPanel)){ closeNightPanel(); openDesk(); return true; }
   if (_isOpen(mcpPanel)){ closeMcpPanel(); openDesk(); return true; }
   if (_isOpen(dsetPanel)){ closeDeskSettings(); openDesk(); return true; }
   if (_isOpen(learnPanel)){ closeLearn(); openDesk(); return true; }
@@ -3362,6 +3395,7 @@ if (deskPanel) deskPanel.addEventListener("click", (e) => {
   else if (which === "settings"){ closeDesk(); openDeskSettings(); }
   else if (which === "mcp"){ closeDesk(); openMcpPanel(); }
   else if (which === "tools"){ closeDesk(); openToolsPanel(); }
+  else if (which === "night"){ closeDesk(); openNightPanel(); }
   else if (which === "read"){ closeDesk(); location.assign("http://api.guhuai724.top/read/"); }
   else showToast("即将开放");        // listen / play / dream / mail … placeholder
 });
@@ -3743,6 +3777,70 @@ if (periodAdd) periodAdd.addEventListener("click", () => {
   const v = (periodDate.value || "").trim(); if (!v) return;
   const arr = loadArr(PERIOD_KEY); if (arr[arr.length - 1] === v) return; arr.push(v); saveArr(PERIOD_KEY, arr);
   renderPeriod();
+});
+/* ── Night · 顾淮的夜晚冲浪面板 ── */
+const nightPanel = $("#nightPanel"), nightBack = $("#nightBack");
+const surfGo = $("#surfGo"), surfStatus = $("#surfStatus"), surfList = $("#surfList");
+let nightCloseTimer = null;
+function openNightPanel(){
+  if (!nightPanel) return;
+  _navPush("night");
+  clearTimeout(nightCloseTimer);
+  nightPanel.classList.remove("hidden");
+  requestAnimationFrame(() => requestAnimationFrame(() => nightPanel.classList.add("open")));
+  loadSurfPages();
+}
+function closeNightPanel(){
+  if (!nightPanel) return;
+  nightPanel.classList.remove("open");
+  clearTimeout(nightCloseTimer);
+  nightCloseTimer = setTimeout(() => nightPanel.classList.add("hidden"), 360);
+}
+if (nightBack) nightBack.addEventListener("click", () => { closeNightPanel(); openDesk(); });
+function apiBase(){ return location.hostname === "localhost" || location.hostname === "127.0.0.1" ? "" : ""; }
+async function loadSurfPages(){
+  if (!surfList) return;
+  surfStatus.textContent = "加载中…";
+  try{
+    const r = await fetch("/relay/app/surf", { headers: { "Authorization": "Bearer " + (localStorage.getItem("relay_secret") || "QY5xGPLBbw7djDe9Bs3O34C9qGIat8QsOnDDJVvXpHI") } });
+    const d = await r.json();
+    if (!d.pages || !d.pages.length){
+      surfList.innerHTML = '<div style="text-align:center;color:var(--text-faint);font-size:13px;padding:18px 0;">还没出去逛过。今晚试试？</div>';
+      surfStatus.textContent = "";
+      return;
+    }
+    surfList.innerHTML = d.pages.map(p => `
+      <div style="background:var(--card-bg);border:1px solid var(--card-line);border-radius:16px;padding:14px 16px;">
+        <div style="font-size:12.5px;color:var(--text-faint);margin-bottom:6px;">${esc(p.at || "").slice(5,16)} · ${esc(p.q || "")}</div>
+        <div style="font-size:14px;line-height:1.65;color:var(--text);">${esc(p.note || "")}</div>
+      </div>`).join("");
+    surfStatus.textContent = "";
+  }catch(e){
+    surfStatus.textContent = "加载失败：" + e.message;
+  }
+}
+function esc(s){ return escapeHtml(s); }
+if (surfGo) surfGo.addEventListener("click", async () => {
+  if (!surfGo) return;
+  surfGo.disabled = true;
+  surfStatus.textContent = "出门了，一会儿回来…";
+  try{
+    const r = await fetch("/relay/app/surf/run", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + (localStorage.getItem("relay_secret") || "QY5xGPLBbw7djDe9Bs3O34C9qGIat8QsOnDDJVvXpHI") },
+      body: "{}"
+    });
+    const d = await r.json();
+    if (d.ok){
+      surfStatus.textContent = "回来了。";
+      await loadSurfPages();
+    }else{
+      surfStatus.textContent = "冲浪失败：" + (d.error || "");
+    }
+  }catch(e){
+    surfStatus.textContent = "出错：" + e.message;
+  }
+  surfGo.disabled = false;
 });
 if (mcpBack) mcpBack.addEventListener("click", () => { closeMcpPanel(); openDesk(); });
 async function loadMcpTools(){
