@@ -22,8 +22,8 @@ import java.util.zip.ZipInputStream;
  * WebView 优先读 anima_www/，缺失回退 assets/anima/
  */
 public class Updater {
-    public static final String REMOTE_VERSION_URL = "https://sonagi130.github.io/anima/version.json";
-    public static final String REMOTE_ZIP_URL = "https://sonagi130.github.io/anima/web.zip";
+    public static final String REMOTE_VERSION_URL = "https://sonagi130.github.io/fatum-echo/version.json";
+    public static final String REMOTE_ZIP_URL = "https://sonagi130.github.io/fatum-echo/web.zip";
 
     private final Context ctx;
 
