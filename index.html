@@ -1488,6 +1488,74 @@
     max-width:100%; white-space:nowrap;
   }
 
+  /* ── MCP 工具面板 (Desk → MCP,独立于设置) ── */
+  .mcp-panel{
+    position: fixed; inset: 0; z-index: 196;
+    pointer-events: none;
+    transform: translateX(100%);
+    transition: transform .34s var(--ease-soft), opacity .26s ease;
+  }
+  .mcp-panel.open{ transform: none; opacity: 1; pointer-events: auto; }
+  .mcp-page{
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    background-color: var(--bg);
+    background-image: var(--wall-default);
+    background-size: cover; background-position: center;
+    overflow: hidden;
+  }
+  .mcp-page::before{
+    content:""; position:absolute; inset:0; background: var(--scrim); pointer-events:none;
+  }
+  .mcp-topbar{
+    position: relative; z-index:1;
+    flex: 0 0 auto;
+    display:flex; align-items:center; gap:10px;
+    height: calc(56px + env(safe-area-inset-top));
+    padding: env(safe-area-inset-top) var(--side-pad) 0;
+  }
+  .mcp-back{
+    width:40px; height:40px; flex:none;
+    border:0; border-radius:50%; padding:0; margin-left:-6px;
+    background: transparent; color: var(--text);
+    display:grid; place-items:center; cursor:pointer;
+    transition: transform .15s ease;
+  }
+  .mcp-back:active{ transform: scale(.9); }
+  .mcp-back svg{ width:24px; height:24px; display:block; }
+  .mcp-title{
+    position: absolute; left: 50%; transform: translateX(-50%);
+    font-family: var(--font-en), var(--font-cn);
+    font-size: clamp(15px, 4vw, 18px); letter-spacing:.06em; color: var(--text);
+    font-weight: 700; font-weight: 800;
+  }
+  .mcp-scroll{
+    position: relative; z-index:1;
+    flex: 1 1 auto; overflow-y: auto;
+    -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+    padding: clamp(18px, 5vw, 30px) var(--side-pad) calc(36px + env(safe-area-inset-bottom));
+    display:flex; flex-direction:column; gap: clamp(20px, 5.5vw, 32px);
+  }
+  .mcp-scroll::-webkit-scrollbar{ width:0; height:0; }
+  .mcp-card{
+    background: var(--card-bg);
+    border:1px solid var(--card-line);
+    border-radius:20px;
+    box-shadow: var(--card-shadow);
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    padding: clamp(16px, 4.2vw, 24px);
+  }
+  .mcp-card-h{
+    display:flex; align-items:center; gap:9px;
+    font-family: var(--font-cn);
+    font-size: clamp(15px, 4vw, 17px); font-weight:600; color: var(--text);
+    margin: 0 0 clamp(14px, 3.5vw, 20px);
+  }
+  .mcp-hint{
+    min-height:17px; margin-top: 9px;
+    font-size: clamp(11.5px, 3vw, 12.5px); color: var(--text-faint); text-align:center;
+  }
+
   /* ── Learn (专注学习 · Desk → 学习,番茄钟 + 热力图) ── */
   .learn-panel{
     position: fixed; inset: 0; z-index: 196;
@@ -2697,6 +2765,27 @@
     </div>
   </div>
 </div>
+<!-- ── MCP 工具面板 (Desk → MCP,独立于设置) ── -->
+<div class="mcp-panel hidden" id="mcpPanel" role="dialog" aria-modal="true" aria-label="MCP 工具">
+  <div class="mcp-page">
+    <div class="mcp-topbar">
+      <button class="mcp-back" id="mcpBack" type="button" aria-label="返回">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <span class="mcp-title">MCP</span>
+    </div>
+    <div class="mcp-scroll">
+      <section class="mcp-card">
+        <div class="mcp-card-h">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex:none;"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 0 0 5.4-5.4L15 12l-3-3 2.7-2.7z"/><circle cx="17.5" cy="6.5" r="2.5"/></svg>
+          顾淮能调用的工具
+        </div>
+        <div class="mcp-hint" id="mcpPanelHint" style="margin-bottom:10px;color:var(--text-soft);font-size:12.5px;line-height:1.5;">跑在服务器上，不影响手机。开关即时生效。</div>
+        <div id="mcpPanelList"></div>
+      </section>
+    </div>
+  </div>
+</div>
 <!-- ── Desk 设置 (Desk → 设置:模型配置 + 聊天显示开关) ── -->
 <div class="dset-panel hidden" id="dsetPanel" role="dialog" aria-modal="true" aria-label="设置">
   <div class="dset-page">
@@ -3142,6 +3231,7 @@ function _isOpen(panel){ return panel && !panel.classList.contains("hidden") && 
 /* Android 返回键:由原生 onBackPressed 调用。返回 true=已消费(关了面板), false=可退出 */
 window.__handleAndroidBack = function(){
   // 面板由顶层往下逐级关
+  if (_isOpen(mcpPanel)){ closeMcpPanel(); openDesk(); return true; }
   if (_isOpen(dsetPanel)){ closeDeskSettings(); openDesk(); return true; }
   if (_isOpen(learnPanel)){ closeLearn(); openDesk(); return true; }
   if (_isOpen(menuPanel)){ closeMenu(); return true; }
@@ -3199,7 +3289,8 @@ if (deskPanel) deskPanel.addEventListener("click", (e) => {
   const which = app.dataset.desk;
   if (which === "learn"){ closeDesk(); openLearn(); }
   else if (which === "settings"){ closeDesk(); openDeskSettings(); }
-  else if (which === "mcp" || which === "tools"){ closeDesk(); openDeskSettings(); }
+  else if (which === "mcp"){ closeDesk(); openMcpPanel(); }
+  else if (which === "tools"){ closeDesk(); openMcpPanel(); }
   else showToast("即将开放");        // listen / read / play / dream / mail … placeholder
 });
 /* ── Learn (专注学习 · 番茄钟 + 热力图) ── */
@@ -3477,14 +3568,33 @@ function applyDisplayPrefs(){
   // 头像/名字由 makeMessage 读取偏好动态处理;这里先触发重绘
   if (typeof scheduleRender === "function") scheduleRender({ preserveAnchor: true });
 }
-/* ── MCP 工具面板（Desk → 设置）── */
+/* ── MCP 工具面板（Desk → MCP 独立面板 + 设置）── */
 const mcpToolList = $("#mcpToolList"), mcpHint = $("#mcpHint");
-let mcpToolsCache = null;
+const mcpPanel = $("#mcpPanel"), mcpBack = $("#mcpBack");
+const mcpPanelList = $("#mcpPanelList"), mcpPanelHint = $("#mcpPanelHint");
+let mcpCloseTimer = null, mcpToolsCache = null;
+function openMcpPanel(){
+  if (!mcpPanel) return;
+  _navPush("mcp");
+  loadMcpTools();
+  clearTimeout(mcpCloseTimer);
+  mcpPanel.classList.remove("hidden");
+  requestAnimationFrame(() => requestAnimationFrame(() => mcpPanel.classList.add("open")));
+}
+function closeMcpPanel(){
+  if (!mcpPanel) return;
+  mcpPanel.classList.remove("open");
+  clearTimeout(mcpCloseTimer);
+  mcpCloseTimer = setTimeout(() => mcpPanel.classList.add("hidden"), 360);
+}
+if (mcpBack) mcpBack.addEventListener("click", () => { closeMcpPanel(); openDesk(); });
 async function loadMcpTools(){
-  if (!mcpToolList) return;
-  if (USE_MOCK || !secret){ if (mcpHint) mcpHint.textContent = "未连接后端，工具列表不可用。"; return; }
+  if (!mcpToolList && !mcpPanelList) return;
+  const hint = mcpPanelHint || mcpHint;
+  if (USE_MOCK || !secret){ if (hint) hint.textContent = "未连接后端，工具列表不可用。"; return; }
   try{
-    mcpToolList.innerHTML = `<div style="color:var(--text-faint);font-size:13px;padding:6px 0;">加载中…</div>`;
+    if (mcpToolList) mcpToolList.innerHTML = `<div style="color:var(--text-faint);font-size:13px;padding:6px 0;">加载中…</div>`;
+    if (mcpPanelList) mcpPanelList.innerHTML = `<div style="color:var(--text-faint);font-size:13px;padding:6px 0;">加载中…</div>`;
     const r = await fetch(`${API_BASE}/app/tools`, { headers: authHeaders(), cache: "no-store" });
     if (!r.ok) throw new Error("tools " + r.status);
     const d = await r.json();
@@ -3492,23 +3602,35 @@ async function loadMcpTools(){
     mcpToolsCache = tools;
     renderMcpTools(tools);
   }catch(err){
-    mcpToolList.innerHTML = `<div style="color:var(--accent);font-size:13px;padding:6px 0;">读不到工具（${err.message || "后端未连上"}）</div>`;
+    const msg = `<div style="color:var(--accent);font-size:13px;padding:6px 0;">读不到工具（${err.message || "后端未连上"}）</div>`;
+    if (mcpToolList) mcpToolList.innerHTML = msg;
+    if (mcpPanelList) mcpPanelList.innerHTML = msg;
   }
 }
 function renderMcpTools(tools){
-  if (!mcpToolList) return;
-  if (!tools || !tools.length){ mcpToolList.innerHTML = `<div style="color:var(--text-faint);font-size:13px;padding:6px 0;">暂无工具</div>`; return; }
-  mcpToolList.innerHTML = tools.map((t) => `
+  const rowHtml = (t) => `
     <div class="dset-row" style="flex-wrap:wrap;">
       <div class="dset-row-copy">
         <div class="dset-row-name">${t.label || t.name}</div>
         <div class="dset-row-sub" style="max-width:78%;">${t.description || ""}</div>
       </div>
       <button class="dset-toggle" type="button" data-mcp="${t.name}" aria-pressed="${t.enabled ? "true" : "false"}"><span></span></button>
-    </div>`).join("");
-  mcpToolList.querySelectorAll(".dset-toggle[data-mcp]").forEach((btn) => {
-    btn.addEventListener("click", () => setMcpTool(btn.dataset.mcp, btn.getAttribute("aria-pressed") !== "true"));
-  });
+    </div>`;
+  const emptyHtml = `<div style="color:var(--text-faint);font-size:13px;padding:6px 0;">暂无工具</div>`;
+  const bind = (list) => {
+    if (!list) return;
+    list.querySelectorAll(".dset-toggle[data-mcp]").forEach((btn) => {
+      btn.addEventListener("click", () => setMcpTool(btn.dataset.mcp, btn.getAttribute("aria-pressed") !== "true"));
+    });
+  };
+  if (!tools || !tools.length){
+    if (mcpToolList) mcpToolList.innerHTML = emptyHtml;
+    if (mcpPanelList) mcpPanelList.innerHTML = emptyHtml;
+    return;
+  }
+  const html = tools.map(rowHtml).join("");
+  if (mcpToolList){ mcpToolList.innerHTML = html; bind(mcpToolList); }
+  if (mcpPanelList){ mcpPanelList.innerHTML = html; bind(mcpPanelList); }
 }
 async function setMcpTool(name, enabled){
   const prev = mcpToolsCache ? mcpToolsCache.map(t => Object.assign({}, t)) : null;
@@ -3524,10 +3646,12 @@ async function setMcpTool(name, enabled){
     const d = await r.json();
     mcpToolsCache = (d && d.tools) || mcpToolsCache || [];
     renderMcpTools(mcpToolsCache);
-    if (mcpHint) mcpHint.textContent = `${name} 已${enabled ? "开启" : "关闭"}`;
+    const hint = mcpPanelHint || mcpHint;
+    if (hint) hint.textContent = `${name} 已${enabled ? "开启" : "关闭"}`;
   }catch(err){
     mcpToolsCache = prev; renderMcpTools(prev);
-    if (mcpHint) mcpHint.textContent = `切换失败：${err.message || "后端未连上"}`;
+    const hint = mcpPanelHint || mcpHint;
+    if (hint) hint.textContent = `切换失败：${err.message || "后端未连上"}`;
   }
 }
 refreshDays();
