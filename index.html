@@ -2782,8 +2782,17 @@
           <button class="dset-toggle" type="button" data-toggle="showAct" aria-pressed="true"><span></span></button>
         </div>
       </section>
+      <!-- MCP 工具 -->
+      <section class="dset-card">
+        <div class="dset-card-h">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex:none;"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 0 0 5.4-5.4L15 12l-3-3 2.7-2.7z"/><circle cx="17.5" cy="6.5" r="2.5"/></svg>
+          MCP 工具
+        </div>
+        <div class="dset-hint" id="mcpHint" style="margin-bottom:10px;color:var(--text-soft);font-size:12.5px;line-height:1.5;">顾淮在壁炉里能调用的工具，跑在服务器上，不影响手机。</div>
+        <div id="mcpToolList"></div>
+      </section>
     </div>
-    <input type="file" id="dsetHumanAvatarInput" accept="image/*" class="hidden">
+<input type="file" id="dsetHumanAvatarInput" accept="image/*" class="hidden">
   </div>
 </div>
 <!-- ── Voice call (speaking overlay · 假按键,纯 UI) ── -->
@@ -3349,6 +3358,7 @@ function displayOn(key){ return displayPrefs()[key] !== false; }
 function openDeskSettings(){
   if (!dsetPanel) return;
   _navPush("settings");
+  loadMcpTools();
   // 模型配置框预填当前自定义/最近配置
   const conf = savedModelConf(pendingModel && pendingModel !== "__custom__" ? pendingModel : "__custom__")
     || savedModelConf("__custom__");
@@ -3465,6 +3475,59 @@ function displayShows(what){ return displayOn(what); }
 function applyDisplayPrefs(){
   // 头像/名字由 makeMessage 读取偏好动态处理;这里先触发重绘
   if (typeof scheduleRender === "function") scheduleRender({ preserveAnchor: true });
+}
+/* ── MCP 工具面板（Desk → 设置）── */
+const mcpToolList = $("#mcpToolList"), mcpHint = $("#mcpHint");
+let mcpToolsCache = null;
+async function loadMcpTools(){
+  if (!mcpToolList) return;
+  if (USE_MOCK || !secret){ if (mcpHint) mcpHint.textContent = "未连接后端，工具列表不可用。"; return; }
+  try{
+    mcpToolList.innerHTML = `<div style="color:var(--text-faint);font-size:13px;padding:6px 0;">加载中…</div>`;
+    const r = await fetch(`${API_BASE}/app/tools`, { headers: authHeaders(), cache: "no-store" });
+    if (!r.ok) throw new Error("tools " + r.status);
+    const d = await r.json();
+    const tools = (d && d.tools) || [];
+    mcpToolsCache = tools;
+    renderMcpTools(tools);
+  }catch(err){
+    mcpToolList.innerHTML = `<div style="color:var(--accent);font-size:13px;padding:6px 0;">读不到工具（${err.message || "后端未连上"}）</div>`;
+  }
+}
+function renderMcpTools(tools){
+  if (!mcpToolList) return;
+  if (!tools || !tools.length){ mcpToolList.innerHTML = `<div style="color:var(--text-faint);font-size:13px;padding:6px 0;">暂无工具</div>`; return; }
+  mcpToolList.innerHTML = tools.map((t) => `
+    <div class="dset-row" style="flex-wrap:wrap;">
+      <div class="dset-row-copy">
+        <div class="dset-row-name">${t.label || t.name}</div>
+        <div class="dset-row-sub" style="max-width:78%;">${t.description || ""}</div>
+      </div>
+      <button class="dset-toggle" type="button" data-mcp="${t.name}" aria-pressed="${t.enabled ? "true" : "false"}"><span></span></button>
+    </div>`).join("");
+  mcpToolList.querySelectorAll(".dset-toggle[data-mcp]").forEach((btn) => {
+    btn.addEventListener("click", () => setMcpTool(btn.dataset.mcp, btn.getAttribute("aria-pressed") !== "true"));
+  });
+}
+async function setMcpTool(name, enabled){
+  const prev = mcpToolsCache ? mcpToolsCache.map(t => Object.assign({}, t)) : null;
+  // 乐观更新
+  if (mcpToolsCache){ const t = mcpToolsCache.find(x => x.name === name); if (t) t.enabled = enabled; renderMcpTools(mcpToolsCache); }
+  try{
+    const r = await fetch(`${API_BASE}/app/tools`, {
+      method: "POST",
+      headers: { ...authHeaders(), "Content-Type": "application/json" },
+      body: JSON.stringify({ name, enabled }),
+    });
+    if (!r.ok) throw new Error("set " + r.status);
+    const d = await r.json();
+    mcpToolsCache = (d && d.tools) || mcpToolsCache || [];
+    renderMcpTools(mcpToolsCache);
+    if (mcpHint) mcpHint.textContent = `${name} 已${enabled ? "开启" : "关闭"}`;
+  }catch(err){
+    mcpToolsCache = prev; renderMcpTools(prev);
+    if (mcpHint) mcpHint.textContent = `切换失败：${err.message || "后端未连上"}`;
+  }
 }
 refreshDays();
 if (backBtn) backBtn.addEventListener("click", openMenu);
