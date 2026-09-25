@@ -2787,6 +2787,36 @@
       <span class="mcp-title">MCP</span>
     </div>
     <div class="mcp-scroll">
+      <!-- 连接管理 -->
+      <section class="mcp-card">
+        <div class="mcp-card-h">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex:none;"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 0 0 5.4-5.4L15 12l-3-3 2.7-2.7z"/><circle cx="17.5" cy="6.5" r="2.5"/></svg>
+          已连接
+        </div>
+        <div id="mcpConnList"></div>
+        <details style="margin-top:14px;border-top:1px dashed var(--card-line);padding-top:14px;">
+          <summary style="cursor:pointer;font-size:13px;color:var(--accent);list-style:none;display:flex;align-items:center;gap:6px;">
+            <span style="font-size:16px;line-height:1;">＋</span> 新建连接
+          </summary>
+          <div style="margin-top:14px;display:flex;flex-direction:column;gap:10px;">
+            <input id="mcpNewName" type="text" placeholder="名称（例如：Cove Sensory）" style="width:100%;background:var(--field-bg);border:1px solid var(--field-line);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--text);">
+            <input id="mcpNewDesc" type="text" placeholder="说明（给 AI 的）：这个工具能做什么" style="width:100%;background:var(--field-bg);border:1px solid var(--field-line);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--text);">
+            <input id="mcpNewUrl" type="text" placeholder="服务地址 https://example.com/mcp 或 /v1" style="width:100%;background:var(--field-bg);border:1px solid var(--field-line);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--text);">
+            <select id="mcpNewType" style="width:100%;background:var(--field-bg);border:1px solid var(--field-line);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--text);">
+              <option value="openai_compatible">OpenAI 兼容（base_url + key）</option>
+              <option value="http_stream">MCP Streamable HTTP</option>
+            </select>
+            <input id="mcpNewModel" type="text" placeholder="模型名（OpenAI 兼容时，例如 Qwen2.5-VL-72B）" style="width:100%;background:var(--field-bg);border:1px solid var(--field-line);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--text);">
+            <input id="mcpNewKey" type="password" placeholder="API Key / Bearer Token（可选，只存服务器）" style="width:100%;background:var(--field-bg);border:1px solid var(--field-line);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--text);">
+            <textarea id="mcpNewHeaders" rows="2" placeholder="自定义请求头（可选 JSON，例如 {\"X-Api-Key\":\"...\"}）" style="width:100%;background:var(--field-bg);border:1px solid var(--field-line);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--text);resize:vertical;"></textarea>
+            <div style="display:flex;gap:8px;">
+              <button id="mcpNewSave" type="button" style="flex:1;background:var(--accent);border:0;border-radius:12px;padding:11px 10px;font-size:14px;color:#fff;cursor:pointer;">保存</button>
+              <button id="mcpNewTest" type="button" style="flex:1;background:transparent;border:1px solid var(--accent);border-radius:12px;padding:11px 10px;font-size:14px;color:var(--accent);cursor:pointer;">测试连接</button>
+            </div>
+            <div id="mcpNewMsg" style="font-size:12.5px;color:var(--text-soft);min-height:16px;"></div>
+          </div>
+        </details>
+      </section>
       <section class="mcp-card">
         <div class="mcp-card-h">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex:none;"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 0 0 5.4-5.4L15 12l-3-3 2.7-2.7z"/><circle cx="17.5" cy="6.5" r="2.5"/></svg>
@@ -3689,6 +3719,7 @@ function openMcpPanel(){
   if (!mcpPanel) return;
   _navPush("mcp");
   loadMcpTools();
+  loadMcpConns();
   clearTimeout(mcpCloseTimer);
   mcpPanel.classList.remove("hidden");
   requestAnimationFrame(() => requestAnimationFrame(() => mcpPanel.classList.add("open")));
@@ -3934,6 +3965,168 @@ async function setMcpTool(name, enabled){
     if (hint) hint.textContent = `切换失败：${err.message || "后端未连上"}`;
   }
 }
+/* ── MCP 连接管理器（卡片式：已连接 + 新建表单）── */
+let mcpConns = [];
+async function loadMcpConns(){
+  const list = $("#mcpConnList");
+  if (!list) return;
+  try{
+    const r = await fetch(`${API_BASE}/app/mcp/connections`, { headers: authHeaders(), cache: "no-store" });
+    if (!r.ok) throw new Error("mcp conns " + r.status);
+    const d = await r.json();
+    mcpConns = (d && d.connections) || [];
+    renderMcpConns();
+  }catch(err){
+    list.innerHTML = `<div style="color:var(--text-faint);font-size:13px;padding:6px 0;">连接读不到（${err.message || "后端未连上"}）</div>`;
+  }
+}
+function connCard(c){
+  const isBuiltin = !!c.builtin;
+  const typeLab = c.conn_type === "openai_compatible" ? "OpenAI" : (c.conn_type === "http_stream" ? "MCP HTTP" : "内置");
+  const nTools = (c.cache_json && c.cache_json.discovered) ? c.cache_json.discovered.length : 0;
+  const safeDesc = (c.description || "").replace(/</g, "&lt;");
+  const safeName = (c.name || "").replace(/</g, "&lt;");
+  return `
+    <div style="border:1px solid var(--card-line);border-radius:14px;padding:12px;margin-bottom:10px;background:var(--field-bg);">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:600;color:var(--text);">${safeName} <span style="font-size:10px;color:var(--text-faint);border:1px solid var(--card-line);border-radius:99px;padding:1px 6px;margin-left:4px;">${typeLab}</span></div>
+          ${safeDesc ? `<div style="font-size:12px;color:var(--text-soft);margin-top:2px;line-height:1.4;">${safeDesc}</div>` : ""}
+          ${!isBuiltin ? `<div style="font-size:11px;color:var(--text-faint);margin-top:3px;font-family:var(--font-en),var(--font-cn);">${escapeHtml(c.base_url || "")}</div>` : ""}
+        </div>
+        <label class="dset-toggle" style="flex:none;display:inline-flex;"><input type="checkbox" ${c.enabled ? "checked" : ""} data-conn-toggle="${c.id}" style="position:absolute;opacity:0;pointer-events:none;"><span></span></label>
+      </div>
+      ${!isBuiltin ? `
+      <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
+        <button type="button" data-conn-test="${c.id}" style="border:1px solid var(--card-line);border-radius:9px;padding:5px 10px;font-size:11.5px;background:transparent;color:var(--text-soft);cursor:pointer;">测试</button>
+        <button type="button" data-conn-del="${c.id}" style="border:1px solid var(--card-line);border-radius:9px;padding:5px 10px;font-size:11.5px;background:transparent;color:#c0533f;cursor:pointer;">删除</button>
+        <span style="font-size:11px;color:var(--text-faint);align-self:center;">${nTools ? `发现 ${nTools} 个模型` : c.cache_json && c.cache_json.discovered ? "" : "未测试"}</span>
+      </div>` : ""}
+    </div>`;
+}
+function renderMcpConns(){
+  const list = $("#mcpConnList");
+  if (!list) return;
+  if (!mcpConns.length){ list.innerHTML = `<div style="color:var(--text-faint);font-size:13px;padding:6px 0;">还没有连接。</div>`; return; }
+  list.innerHTML = mcpConns.map(connCard).join("");
+  list.querySelectorAll("[data-conn-toggle]").forEach((cb) => {
+    cb.addEventListener("change", async () => {
+      const id = cb.dataset.connToggle;
+      const on = cb.checked;
+      try{
+        const r = await fetch(`${API_BASE}/app/mcp/connections/${id}`, {
+          method: "PATCH",
+          headers: { ...authHeaders(), "Content-Type": "application/json" },
+          body: JSON.stringify({ enabled: on }),
+        });
+        if (!r.ok) throw new Error("patch " + r.status);
+        const d = await r.json();
+        showToast(d.connection ? `${d.connection.name} 已${on ? "开启" : "关闭"}` : "已更新");
+      }catch(err){
+        cb.checked = !on;
+        showToast("切换失败：" + err.message);
+      }
+    });
+  });
+  list.querySelectorAll("[data-conn-test]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const id = btn.dataset.connTest;
+      btn.textContent = "测试中…"; btn.disabled = true;
+      try{
+        const r = await fetch(`${API_BASE}/app/mcp/connections/${id}/test`, {
+          method: "POST",
+          headers: authHeaders(),
+        });
+        if (!r.ok) throw new Error("test " + r.status);
+        const d = await r.json();
+        showToast(d.ok ? ("连接成功：" + (d.message || "")) : ("连接失败：" + (d.message || "")));
+        if (d.ok && d.items && d.items.length) mcpConns.find(x => x.id == id) && (mcpConns.find(x => x.id == id).cache_json = { discovered: d.items });
+      }catch(err){
+        showToast("测试出错：" + err.message);
+      }
+      btn.textContent = "测试"; btn.disabled = false;
+      loadMcpConns();
+    });
+  });
+  list.querySelectorAll("[data-conn-del]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const id = btn.dataset.connDel;
+      if (!confirm("删除这个连接？")) return;
+      try{
+        const r = await fetch(`${API_BASE}/app/mcp/connections/${id}`, {
+          method: "DELETE",
+          headers: authHeaders(),
+        });
+        if (!r.ok) throw new Error("del " + r.status);
+        showToast("已删除");
+        loadMcpConns();
+      }catch(err){
+        showToast("删除失败：" + err.message);
+      }
+    });
+  });
+}
+function buildNewConnPayload(){
+  const name = ($("#mcpNewName") && $("#mcpNewName").value || "").trim();
+  const description = ($("#mcpNewDesc") && $("#mcpNewDesc").value || "").trim();
+  const base_url = ($("#mcpNewUrl") && $("#mcpNewUrl").value || "").trim();
+  const conn_type = ($("#mcpNewType") && $("#mcpNewType").value || "openai_compatible");
+  const model = ($("#mcpNewModel") && $("#mcpNewModel").value || "").trim();
+  const api_key = ($("#mcpNewKey") && $("#mcpNewKey").value || "").trim();
+  let headers_json = {};
+  if ($("#mcpNewHeaders")){
+    const hv = ($("#mcpNewHeaders").value || "").trim();
+    if (hv){ try{ headers_json = JSON.parse(hv); }catch(_){ showToast("自定义请求头不是合法 JSON"); return null; } }
+  }
+  return { name, description, base_url, conn_type, model, api_key, headers_json };
+}
+async function mcpSaveNew(){
+  const msg = $("#mcpNewMsg");
+  if (!msg) return;
+  const p = buildNewConnPayload();
+  if (!p) return;
+  if (!p.name){ msg.textContent = "填个名字"; return; }
+  if (!p.base_url){ msg.textContent = "填服务地址"; return; }
+  try{
+    const r = await fetch(`${API_BASE}/app/mcp/connections`, {
+      method: "POST",
+      headers: { ...authHeaders(), "Content-Type": "application/json" },
+      body: JSON.stringify(p),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok){ msg.textContent = "保存失败：" + ((d && d.detail) || r.status); return; }
+    msg.textContent = "已保存：Test 一下看通不通。";
+    // 清空 key 输入
+    if ($("#mcpNewKey")) $("#mcpNewKey").value = "";
+    if ($("#mcpNewName")) $("#mcpNewName").value = "";
+    if ($("#mcpNewUrl")) $("#mcpNewUrl").value = "";
+    loadMcpConns();
+  }catch(err){
+    msg.textContent = "保存出错：" + err.message;
+  }
+}
+async function mcpTestNew(){
+  const msg = $("#mcpNewMsg");
+  if (!msg) return;
+  const p = buildNewConnPayload();
+  if (!p) return;
+  if (!p.base_url){ msg.textContent = "填服务地址再测"; return; }
+  msg.textContent = "测试中…";
+  try{
+    const r = await fetch(`${API_BASE}/app/mcp/connections/test-raw`, {
+      method: "POST",
+      headers: { ...authHeaders(), "Content-Type": "application/json" },
+      body: JSON.stringify(p),
+    });
+    const d = await r.json().catch(() => ({}));
+    msg.textContent = d.ok ? ("✓ " + (d.message || "通了")) : ("✗ " + (d.message || "没通"));
+  }catch(err){
+    msg.textContent = "测试出错：" + err.message;
+  }
+}
+if ($("#mcpNewSave")) $("#mcpNewSave").addEventListener("click", mcpSaveNew);
+if ($("#mcpNewTest")) $("#mcpNewTest").addEventListener("click", mcpTestNew);
+if ($("#mcpNewKey")) $("#mcpNewKey").addEventListener("keydown", (e) => { if (e.key === "Enter") mcpSaveNew(); });
 refreshDays();
 if (backBtn) backBtn.addEventListener("click", openMenu);
 if (menuPanel){
