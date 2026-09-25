@@ -2571,7 +2571,7 @@
           <span class="menu-copy"><span class="menu-name">Chat</span><span class="menu-sub">Back to our talk.</span></span>
           <span class="menu-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span>
         </button>
-        <button class="menu-item" type="button" data-menu="night">
+        <button class="menu-item" type="button" data-menu="night" id="menuNightItem">
           <span class="menu-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/><path d="M17 3.5l.8 1.7 1.7.8-1.7.8-.8 1.7-.8-1.7-1.7-.8 1.7-.8z"/></svg></span>
           <span class="menu-dot"></span>
           <span class="menu-copy"><span class="menu-name">Night</span><span class="menu-sub">顾淮的夜晚 · 我半夜逛到的</span></span>
@@ -3296,6 +3296,13 @@ function openMenu(){
   _navPush("menu");
   refreshDays();
   syncTabHighlight();
+  // 按 MCP 开关显隐 Night 入口
+  const nightItem = document.getElementById("menuNightItem");
+  if (nightItem){
+    const t = mcpToolsCache && mcpToolsCache.find(x => x.name === "surf_night");
+    if (t){ nightItem.style.display = t.enabled ? "" : "none"; }
+    else { nightItem.style.display = ""; loadMcpTools().then(() => { const tt = mcpToolsCache && mcpToolsCache.find(x => x.name === "surf_night"); if (tt && nightItem) nightItem.style.display = tt.enabled ? "" : "none"; }); }
+  }
   clearTimeout(menuCloseTimer);
   menuPanel.classList.remove("hidden");
   requestAnimationFrame(() => requestAnimationFrame(() => menuPanel.classList.add("open")));
@@ -3904,6 +3911,11 @@ async function setMcpTool(name, enabled){
   const prev = mcpToolsCache ? mcpToolsCache.map(t => Object.assign({}, t)) : null;
   // 乐观更新
   if (mcpToolsCache){ const t = mcpToolsCache.find(x => x.name === name); if (t) t.enabled = enabled; renderMcpTools(mcpToolsCache); }
+  // 联动 menu 的 Night 入口显隐
+  if (name === "surf_night"){
+    const nightItem = document.getElementById("menuNightItem");
+    if (nightItem) nightItem.style.display = enabled ? "" : "none";
+  }
   try{
     const r = await fetch(`${API_BASE}/app/tools`, {
       method: "POST",
