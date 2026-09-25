@@ -2778,10 +2778,18 @@
       <section class="mcp-card">
         <div class="mcp-card-h">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex:none;"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 0 0 5.4-5.4L15 12l-3-3 2.7-2.7z"/><circle cx="17.5" cy="6.5" r="2.5"/></svg>
-          顾淮能调用的工具
+          基础工具
         </div>
         <div class="mcp-hint" id="mcpPanelHint" style="margin-bottom:10px;color:var(--text-soft);font-size:12.5px;line-height:1.5;">跑在服务器上，不影响手机。开关即时生效。</div>
-        <div id="mcpPanelList"></div>
+        <div id="mcpPanelListBase"></div>
+      </section>
+      <section class="mcp-card">
+        <div class="mcp-card-h">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex:none;"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          音乐工具
+        </div>
+        <div class="mcp-hint" id="mcpPanelMusicHint" style="margin-bottom:10px;color:var(--text-soft);font-size:12.5px;line-height:1.5;">网易云音乐 · 搜歌 / 详情 / 歌词</div>
+        <div id="mcpPanelListMusic"></div>
       </section>
     </div>
   </div>
@@ -3571,7 +3579,8 @@ function applyDisplayPrefs(){
 /* ── MCP 工具面板（Desk → MCP 独立面板 + 设置）── */
 const mcpToolList = $("#mcpToolList"), mcpHint = $("#mcpHint");
 const mcpPanel = $("#mcpPanel"), mcpBack = $("#mcpBack");
-const mcpPanelList = $("#mcpPanelList"), mcpPanelHint = $("#mcpPanelHint");
+const mcpPanelListBase = $("#mcpPanelListBase"), mcpPanelListMusic = $("#mcpPanelListMusic");
+const mcpPanelHint = $("#mcpPanelHint"), mcpPanelMusicHint = $("#mcpPanelMusicHint");
 let mcpCloseTimer = null, mcpToolsCache = null;
 function openMcpPanel(){
   if (!mcpPanel) return;
@@ -3589,12 +3598,12 @@ function closeMcpPanel(){
 }
 if (mcpBack) mcpBack.addEventListener("click", () => { closeMcpPanel(); openDesk(); });
 async function loadMcpTools(){
-  if (!mcpToolList && !mcpPanelList) return;
-  const hint = mcpPanelHint || mcpHint;
-  if (USE_MOCK || !secret){ if (hint) hint.textContent = "未连接后端，工具列表不可用。"; return; }
+  if (!mcpToolList && !mcpPanelListBase && !mcpPanelListMusic) return;
+  if (USE_MOCK || !secret){ const h = mcpPanelHint || mcpHint; if (h) h.textContent = "未连接后端，工具列表不可用。"; return; }
   try{
     if (mcpToolList) mcpToolList.innerHTML = `<div style="color:var(--text-faint);font-size:13px;padding:6px 0;">加载中…</div>`;
-    if (mcpPanelList) mcpPanelList.innerHTML = `<div style="color:var(--text-faint);font-size:13px;padding:6px 0;">加载中…</div>`;
+    if (mcpPanelListBase) mcpPanelListBase.innerHTML = `<div style="color:var(--text-faint);font-size:13px;padding:6px 0;">加载中…</div>`;
+    if (mcpPanelListMusic) mcpPanelListMusic.innerHTML = `<div style="color:var(--text-faint);font-size:13px;padding:6px 0;">加载中…</div>`;
     const r = await fetch(`${API_BASE}/app/tools`, { headers: authHeaders(), cache: "no-store" });
     if (!r.ok) throw new Error("tools " + r.status);
     const d = await r.json();
@@ -3604,8 +3613,13 @@ async function loadMcpTools(){
   }catch(err){
     const msg = `<div style="color:var(--accent);font-size:13px;padding:6px 0;">读不到工具（${err.message || "后端未连上"}）</div>`;
     if (mcpToolList) mcpToolList.innerHTML = msg;
-    if (mcpPanelList) mcpPanelList.innerHTML = msg;
+    if (mcpPanelListBase) mcpPanelListBase.innerHTML = msg;
+    if (mcpPanelListMusic) mcpPanelListMusic.innerHTML = msg;
   }
+}
+function isMusicTool(t){
+  const n = (t && (t.name || t.label || "")) || "";
+  return /netease|music|song|lyric|网易|音乐|歌词|搜歌/.test(n);
 }
 function renderMcpTools(tools){
   const rowHtml = (t) => `
@@ -3625,12 +3639,20 @@ function renderMcpTools(tools){
   };
   if (!tools || !tools.length){
     if (mcpToolList) mcpToolList.innerHTML = emptyHtml;
-    if (mcpPanelList) mcpPanelList.innerHTML = emptyHtml;
+    if (mcpPanelListBase) mcpPanelListBase.innerHTML = emptyHtml;
+    if (mcpPanelListMusic) mcpPanelListMusic.innerHTML = emptyHtml;
     return;
   }
-  const html = tools.map(rowHtml).join("");
-  if (mcpToolList){ mcpToolList.innerHTML = html; bind(mcpToolList); }
-  if (mcpPanelList){ mcpPanelList.innerHTML = html; bind(mcpPanelList); }
+  // 独立 MCP 面板:分基础 / 音乐两栏
+  if (mcpPanelListBase || mcpPanelListMusic){
+    const base = tools.filter(t => !isMusicTool(t));
+    const music = tools.filter(t => isMusicTool(t));
+    if (mcpPanelListBase) mcpPanelListBase.innerHTML = base.length ? base.map(rowHtml).join("") : emptyHtml;
+    if (mcpPanelListMusic) mcpPanelListMusic.innerHTML = music.length ? music.map(rowHtml).join("") : emptyHtml;
+    bind(mcpPanelListBase); bind(mcpPanelListMusic);
+  }
+  // 设置面板:全部列一起
+  if (mcpToolList){ mcpToolList.innerHTML = tools.map(rowHtml).join(""); bind(mcpToolList); }
 }
 async function setMcpTool(name, enabled){
   const prev = mcpToolsCache ? mcpToolsCache.map(t => Object.assign({}, t)) : null;
