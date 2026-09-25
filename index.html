@@ -3199,7 +3199,8 @@ if (deskPanel) deskPanel.addEventListener("click", (e) => {
   const which = app.dataset.desk;
   if (which === "learn"){ closeDesk(); openLearn(); }
   else if (which === "settings"){ closeDesk(); openDeskSettings(); }
-  else showToast("即将开放");        // listen / read / play / dream / mail / mcp / tools … placeholder
+  else if (which === "mcp" || which === "tools"){ closeDesk(); openDeskSettings(); }
+  else showToast("即将开放");        // listen / read / play / dream / mail … placeholder
 });
 /* ── Learn (专注学习 · 番茄钟 + 热力图) ── */
 const learnPanel = $("#learnPanel"), learnBack = $("#learnBack");
