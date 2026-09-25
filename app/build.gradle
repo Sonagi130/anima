@@ -10,8 +10,8 @@ android {
         applicationId "io.github.sonagi130.anima"
         minSdk 23
         targetSdk 34
-        versionCode 3
-        versionName "1.2.0"
+        versionCode 8
+        versionName "1.2.6"
     }
 
     signingConfigs {
