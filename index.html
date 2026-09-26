@@ -3929,7 +3929,7 @@ if (surfGo) surfGo.addEventListener("click", async () => {
 const memoryPanel = $("#memoryPanel"), memoryBack = $("#memoryBack");
 const memorySearch = $("#memorySearch"), memorySearchGo = $("#memorySearchGo");
 const memoryStatus = $("#memoryStatus"), memoryList = $("#memoryList");
-let memoryCloseTimer = null, memoryQ = "", memoryDetailTime, memoryDetailTier = "", memoryDetailId = "", memoryTierFilter = "" = "";
+let memoryCloseTimer = null, memoryQ = "", memoryDetailTime, memoryDetailTier = "", memoryDetailId = "", memoryTierFilter = "";
 function openMemoryPanel(){
   if (!memoryPanel) return;
   _navPush("memory");
@@ -4042,7 +4042,7 @@ async function editMemory(bucketId, title){
     alert((j.error || "保存失败") + (j.message ? "：" + j.message : ""));
   }
 }
-function searchMemory(q){
+async function searchMemory(q){
   if (!memoryList) return;
   memoryStatus.textContent = "搜索中…";
   try{
