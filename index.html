@@ -2940,6 +2940,13 @@
           <input id="memorySearch" type="text" placeholder="搜记忆…" style="flex:1;background:var(--card-bg);border:1px solid var(--card-line);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--text);">
           <button id="memorySearchGo" type="button" style="background:var(--accent);border:0;border-radius:12px;padding:10px 16px;font-size:14px;color:#fff;flex:none;">搜</button>
         </div>
+        <div id="memoryTierBar" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
+          <button class="mem-tier-btn active" data-tier="" type="button" style="background:var(--accent);color:#fff;border:0;border-radius:10px;padding:6px 12px;font-size:12.5px;cursor:pointer;">全部</button>
+          <button class="mem-tier-btn" data-tier="塔尖" type="button" style="background:var(--card-bg);color:var(--text);border:1px solid var(--card-line);border-radius:10px;padding:6px 12px;font-size:12.5px;cursor:pointer;">塔尖</button>
+          <button class="mem-tier-btn" data-tier="24线" type="button" style="background:var(--card-bg);color:var(--text);border:1px solid var(--card-line);border-radius:10px;padding:6px 12px;font-size:12.5px;cursor:pointer;">24线</button>
+          <button class="mem-tier-btn" data-tier="日常" type="button" style="background:var(--card-bg);color:var(--text);border:1px solid var(--card-line);border-radius:10px;padding:6px 12px;font-size:12.5px;cursor:pointer;">日常</button>
+          <button class="mem-tier-btn" data-tier="底座" type="button" style="background:var(--card-bg);color:var(--text);border:1px solid var(--card-line);border-radius:10px;padding:6px 12px;font-size:12.5px;cursor:pointer;">底座</button>
+        </div>
         <div id="memoryStatus" style="font-size:12.5px;color:var(--text-faint);text-align:center;min-height:17px;margin-bottom:12px;"></div>
         <div id="memoryList" style="display:flex;flex-direction:column;gap:10px;"></div>
       </section>
@@ -3922,13 +3929,14 @@ if (surfGo) surfGo.addEventListener("click", async () => {
 const memoryPanel = $("#memoryPanel"), memoryBack = $("#memoryBack");
 const memorySearch = $("#memorySearch"), memorySearchGo = $("#memorySearchGo");
 const memoryStatus = $("#memoryStatus"), memoryList = $("#memoryList");
-let memoryCloseTimer = null, memoryQ = "", memoryDetailTime = "";
+let memoryCloseTimer = null, memoryQ = "", memoryDetailTime, memoryDetailTier = "", memoryDetailId = "", memoryTierFilter = "" = "";
 function openMemoryPanel(){
   if (!memoryPanel) return;
   _navPush("memory");
   clearTimeout(memoryCloseTimer);
   memoryPanel.classList.remove("hidden");
   requestAnimationFrame(() => requestAnimationFrame(() => memoryPanel.classList.add("open")));
+  bindMemoryTierBar();
   loadMemoryCatalog();
 }
 function closeMemoryPanel(){
@@ -3954,37 +3962,87 @@ async function loadMemoryCatalog(){
     const lines = d.catalog.split("\n").map(s => s.trim()).filter(s => s && !s.startsWith("=") && !s.startsWith("先看"));
     const items = [];
     for (const ln of lines){
-      let m = ln.match(/^(\d{4}-\d{2}-\d{2})\s+(\d{2}-\d{2}-\d{2})\s+(.+?) \| (.+?) \| (.+)$/);
-      if (m){ items.push({ date: m[1], full: m[1] + ' ' + m[2], title: m[3], domain: m[4], weight: m[5] }); continue; }
-      m = ln.match(/^(\d{4}-\d{2}-\d{2})\s+(.+?) \| (.+?) \| (.+)$/);
-      if (m) items.push({ date: m[1], full: m[1], title: m[2], domain: m[3], weight: m[4] });
+      let m = ln.match(/^(\d{4}-\d{2}-\d{2})\s+(\d{2}-\d{2}-\d{2})\s+(.+?) \| (.+?) \| (.+?)(?: \| \[([^\]]*)\](?: 改@([^ ]+))?(?: \[id:([^\]]*)\])?)?$/);
+      if (m){ items.push({ date: m[1], full: m[1] + ' ' + m[2], title: m[3], domain: m[4], weight: m[5], tier: m[6] || "", updated: m[7] || "", id: m[8] || "" }); continue; }
+      m = ln.match(/^(\d{4}-\d{2}-\d{2})\s+(.+?) \| (.+?) \| (.+?)(?: \| \[([^\]]*)\](?: 改@([^ ]+))?(?: \[id:([^\]]*)\])?)?$/);
+      if (m) items.push({ date: m[1], full: m[1], title: m[2], domain: m[3], weight: m[4], tier: m[5] || "", updated: m[6] || "", id: m[7] || "" });
     }
-    if (!items.length){
+    const filtered = memoryTierFilter ? items.filter(it => it.tier === memoryTierFilter) : items;
+    if (!filtered.length){
       memoryList.innerHTML = '<div style="text-align:center;color:var(--text-faint);font-size:13px;padding:18px 0;">还没有记忆。聊一阵就有了。</div>';
       memoryStatus.textContent = "";
       return;
     }
-    memoryStatus.textContent = `${items.length} 条记忆`;
-    memoryList.innerHTML = items.map(it => `
-      <div class="mem-item" data-title="${esc(it.title)}" data-fulltime="${esc(it.full || it.date)}" style="background:var(--card-bg);border:1px solid var(--card-line);border-radius:16px;padding:14px 16px;cursor:pointer;">
-        <div style="font-size:11px;color:var(--text-faint);margin-bottom:5px;">${esc((it.date||"").split(" ")[0])}</div>
+    memoryStatus.textContent = `${filtered.length} 条记忆`;
+    memoryList.innerHTML = filtered.map(it => `
+      <div class="mem-item" data-title="${esc(it.title)}" data-fulltime="${esc(it.full || it.date)}" data-tier="${esc(it.tier)}" data-id="${esc(it.id)}" style="background:var(--card-bg);border:1px solid var(--card-line);border-radius:16px;padding:14px 16px;cursor:pointer;">
+        <div style="font-size:11px;color:var(--text-faint);margin-bottom:5px;display:flex;justify-content:space-between;align-items:center;">
+          <span>${esc((it.date||"").split(" ")[0])}${it.tier ? `<span style="margin-left:6px;color:var(--accent);font-weight:600;">[${esc(it.tier)}]</span>` : ""}</span>
+          ${it.updated ? `<span style="color:var(--text-faint);">改于 ${esc(it.updated)}"}` : ""}
+        </div>
         <div style="font-size:14.5px;line-height:1.5;color:var(--text);font-weight:500;">${esc(it.title)}</div>
         <div style="font-size:11.5px;color:var(--text-faint);margin-top:5px;">${esc(it.domain)} · 权重 ${esc(it.weight)}</div>
+        ${it.tier === "日常" ? `<button class="mem-edit-btn" data-id="${esc(it.id)}" data-title="${esc(it.title)}" type="button" style="margin-top:10px;background:var(--card-bg);border:1px solid var(--card-line);border-radius:10px;padding:6px 12px;font-size:12.5px;color:var(--text);cursor:pointer;">编辑</button>` : ""}
       </div>`).join("");
     // 点击条目 → 搜索拉全文
     memoryList.querySelectorAll(".mem-item").forEach(el => {
-      el.addEventListener("click", () => {
+      el.addEventListener("click", (ev) => {
+        if (ev.target.closest(".mem-edit-btn")) return;
         memoryDetailTime = el.dataset.fulltime || "";
+        memoryDetailTier = el.dataset.tier || "";
+        memoryDetailId = el.dataset.id || "";
         const q = el.dataset.title || "";
         memorySearch.value = q;
         searchMemory(q);
       });
     });
+    memoryList.querySelectorAll(".mem-edit-btn").forEach(btn => {
+      btn.addEventListener("click", () => editMemory(btn.dataset.id, btn.dataset.title));
+    });
   }catch(e){
     memoryStatus.textContent = "加载失败：" + e.message;
   }
 }
-async function searchMemory(q){
+async function bindMemoryTierBar(){
+  const bar = $("#memoryTierBar");
+  if (!bar) return;
+  bar.querySelectorAll(".mem-tier-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      memoryTierFilter = btn.dataset.tier || "";
+      bar.querySelectorAll(".mem-tier-btn").forEach(b => {
+        const on = b.dataset.tier === memoryTierFilter;
+        b.style.background = on ? "var(--accent)" : "var(--card-bg)";
+        b.style.color = on ? "#fff" : "var(--text)";
+        b.style.border = on ? "0" : "1px solid var(--card-line)";
+      });
+      loadMemoryCatalog();
+    });
+  });
+}
+async function editMemory(bucketId, title){
+  if (!bucketId) { alert("这条记忆没有 id，改不了。"); return; }
+  const cur = await fetch(`${API_BASE}/app/memory?q=${encodeURIComponent(title)}`, { headers: authHeaders(), cache: "no-store" });
+  const d = await cur.json();
+  const body = d.bucket || "";
+  const clean = body.replace(/^\[bucket_id:[^\]]*\] \[domain:[^\]]*\] \[tags:[^\]]*\] \[content_role:[^\]]*\] \[instructions:[^\]]*\]\s*/m, "").trim();
+  const txt = prompt("编辑这条日常记忆（会留痕）：", clean);
+  if (txt === null) return;
+  if (!txt.trim()) { alert("内容不能为空。"); return; }
+  const r = await fetch(`${API_BASE}/app/memory`, {
+    method: "POST",
+    headers: Object.assign({"Content-Type": "application/json"}, authHeaders()),
+    body: JSON.stringify({ bucket_id: bucketId, content: txt.trim() }),
+    cache: "no-store"
+  });
+  const j = await r.json();
+  if (j.ok){
+    alert("已保存。修改时间已留痕。");
+    loadMemoryCatalog();
+  } else {
+    alert((j.error || "保存失败") + (j.message ? "：" + j.message : ""));
+  }
+}
+function searchMemory(q){
   if (!memoryList) return;
   memoryStatus.textContent = "搜索中…";
   try{
