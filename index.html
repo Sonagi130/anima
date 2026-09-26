@@ -3998,6 +3998,7 @@ function connCard(c){
       </div>
       ${!isBuiltin ? `
       <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
+        <button type="button" data-conn-edit="${c.id}" style="border:1px solid var(--accent);border-radius:9px;padding:5px 10px;font-size:11.5px;background:transparent;color:var(--accent);cursor:pointer;">编辑</button>
         <button type="button" data-conn-test="${c.id}" style="border:1px solid var(--card-line);border-radius:9px;padding:5px 10px;font-size:11.5px;background:transparent;color:var(--text-soft);cursor:pointer;">测试</button>
         <button type="button" data-conn-del="${c.id}" style="border:1px solid var(--card-line);border-radius:9px;padding:5px 10px;font-size:11.5px;background:transparent;color:#c0533f;cursor:pointer;">删除</button>
         <span style="font-size:11px;color:var(--text-faint);align-self:center;">${nTools ? `发现 ${nTools} 个模型` : c.cache_json && c.cache_json.discovered ? "" : "未测试"}</span>
@@ -4066,6 +4067,56 @@ function renderMcpConns(){
       }
     });
   });
+  list.querySelectorAll("[data-conn-edit]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.connEdit;
+      const c = mcpConns.find(x => String(x.id) === String(id));
+      if (!c) return;
+      startEditConn(c);
+    });
+  });
+}
+let mcpEditId = null;
+function startEditConn(c){
+  mcpEditId = c.id;
+  const name = $("#mcpNewName"), desc = $("#mcpNewDesc"), url = $("#mcpNewUrl"), type = $("#mcpNewType"), model = $("#mcpNewModel"), key = $("#mcpNewKey"), headers = $("#mcpNewHeaders");
+  if (name) name.value = c.name || "";
+  if (desc) desc.value = c.description || "";
+  if (url) url.value = c.base_url || "";
+  if (type) type.value = c.conn_type || "openai_compatible";
+  if (model) model.value = c.model || "";
+  if (key) key.value = ""; // key 不回显，留空=不修改
+  if (headers) headers.value = c.headers_json && c.headers_json !== "{}" ? JSON.stringify(c.headers_json, null, 0) : "";
+  const summ = document.querySelector(".mcp-card details summary");
+  if (summ){ summ.textContent = "✎ 编辑连接"; summ.style.color = "var(--accent)"; }
+  const details = document.querySelector(".mcp-card details");
+  if (details) details.open = true;
+  const msg = $("#mcpNewMsg");
+  if (msg) msg.textContent = "编辑模式：改完点保存。Key 留空表示不修改。";
+  // 显示取消编辑
+  let cancelBtn = $("#mcpNewCancel");
+  if (!cancelBtn){
+    const saveBtn = $("#mcpNewSave");
+    if (saveBtn && saveBtn.parentNode){
+      cancelBtn = document.createElement("button");
+      cancelBtn.id = "mcpNewCancel";
+      cancelBtn.type = "button";
+      cancelBtn.textContent = "取消";
+      cancelBtn.style.cssText = "flex:1;background:transparent;border:1px solid var(--card-line);border-radius:12px;padding:11px 10px;font-size:14px;color:var(--text-soft);cursor:pointer;";
+      cancelBtn.addEventListener("click", cancelEditConn);
+      saveBtn.parentNode.appendChild(cancelBtn);
+    }
+  }else{ cancelBtn.style.display = ""; }
+  if (name) name.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+function cancelEditConn(){
+  mcpEditId = null;
+  const name = $("#mcpNewName"), desc = $("#mcpNewDesc"), url = $("#mcpNewUrl"), model = $("#mcpNewModel"), key = $("#mcpNewKey"), headers = $("#mcpNewHeaders");
+  if (name) name.value = ""; if (desc) desc.value = ""; if (url) url.value = ""; if (model) model.value = ""; if (key) key.value = ""; if (headers) headers.value = "";
+  const summ = document.querySelector(".mcp-card details summary");
+  if (summ){ summ.textContent = "＋ 新建连接"; summ.style.color = ""; }
+  const msg = $("#mcpNewMsg"); if (msg) msg.textContent = "";
+  const cancelBtn = $("#mcpNewCancel"); if (cancelBtn) cancelBtn.style.display = "none";
 }
 function buildNewConnPayload(){
   const name = ($("#mcpNewName") && $("#mcpNewName").value || "").trim();
@@ -4089,18 +4140,23 @@ async function mcpSaveNew(){
   if (!p.name){ msg.textContent = "填个名字"; return; }
   if (!p.base_url){ msg.textContent = "填服务地址"; return; }
   try{
-    const r = await fetch(`${API_BASE}/app/mcp/connections`, {
-      method: "POST",
+    const editing = mcpEditId != null;
+    const url = editing ? `${API_BASE}/app/mcp/connections/${mcpEditId}` : `${API_BASE}/app/mcp/connections`;
+    const r = await fetch(url, {
+      method: editing ? "PATCH" : "POST",
       headers: { ...authHeaders(), "Content-Type": "application/json" },
       body: JSON.stringify(p),
     });
     const d = await r.json().catch(() => ({}));
     if (!r.ok){ msg.textContent = "保存失败：" + ((d && d.detail) || r.status); return; }
-    msg.textContent = "已保存：Test 一下看通不通。";
-    // 清空 key 输入
+    msg.textContent = editing ? "已更新。" : "已保存：Test 一下看通不通。";
+    // 清空 key 输入（编辑模式清空表单并退出编辑）
     if ($("#mcpNewKey")) $("#mcpNewKey").value = "";
-    if ($("#mcpNewName")) $("#mcpNewName").value = "";
-    if ($("#mcpNewUrl")) $("#mcpNewUrl").value = "";
+    if (editing){ cancelEditConn(); }
+    else{
+      if ($("#mcpNewName")) $("#mcpNewName").value = "";
+      if ($("#mcpNewUrl")) $("#mcpNewUrl").value = "";
+    }
     loadMcpConns();
   }catch(err){
     msg.textContent = "保存出错：" + err.message;
