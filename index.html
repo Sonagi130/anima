@@ -7235,24 +7235,28 @@ function imageToJpeg(file){
     if (/gif$/i.test(file.type || "") || /\.gif$/i.test(file.name || "")){ resolve(null); return; }  // 动图保留原样
     const url = URL.createObjectURL(file);
     const img = new Image();
+    // 兜底超时:某些 WebView 里图片加载/画布转码既不回调也不报错,不能让它卡死整个发送
+    const timer = setTimeout(() => { URL.revokeObjectURL(url); resolve(null); }, 3000);
+    const done = (v) => { clearTimeout(timer); resolve(v); };
     img.onload = () => {
       try{
         const max = 2048;
         let w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
-        if (!w || !h){ URL.revokeObjectURL(url); resolve(null); return; }
+        if (!w || !h){ URL.revokeObjectURL(url); done(null); return; }
         let outW = w, outH = h;
         if (outW > max || outH > max){ const r = Math.min(max / outW, max / outH); outW = Math.round(outW * r); outH = Math.round(outH * r); }
         const c = document.createElement("canvas"); c.width = outW; c.height = outH;
         c.getContext("2d").drawImage(img, 0, 0, outW, outH);
         URL.revokeObjectURL(url);
         c.toBlob((blob) => {
-          if (!blob){ resolve(null); return; }
+          if (!blob){ done(null); return; }
           const base = (file.name || "image").replace(/\.[^.]+$/, "") || "image";
-          resolve({ blob: blob, name: base + ".jpg", width: outW, height: outH });
+          done({ blob: blob, name: base + ".jpg", width: outW, height: outH });
         }, "image/jpeg", 0.9);
-      }catch(e){ URL.revokeObjectURL(url); resolve(null); }
+        // toBlob 兜底:部分环境 toBlob 不回调,等超时直接原图
+      }catch(e){ URL.revokeObjectURL(url); done(null); }
     };
-    img.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
+    img.onerror = () => { URL.revokeObjectURL(url); done(null); };
     img.src = url;
   });
 }
