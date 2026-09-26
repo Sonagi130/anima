@@ -3927,9 +3927,9 @@ function renderMcpTools(tools){
     if (mcpPanelListMusic) mcpPanelListMusic.innerHTML = emptyHtml;
     return;
   }
-  // 独立 MCP 面板:分基础 / 音乐两栏
+  // 独立 MCP 面板:分基础 / 音乐两栏（Night 是独立入口,不进基础工具列表）
   if (mcpPanelListBase || mcpPanelListMusic){
-    const base = tools.filter(t => !isMusicTool(t));
+    const base = tools.filter(t => !isMusicTool(t) && t.name !== "surf_night");
     const music = tools.filter(t => isMusicTool(t));
     if (mcpPanelListBase) mcpPanelListBase.innerHTML = base.length ? base.map(rowHtml).join("") : emptyHtml;
     if (mcpPanelListMusic) mcpPanelListMusic.innerHTML = music.length ? music.map(rowHtml).join("") : emptyHtml;
@@ -3994,7 +3994,7 @@ function connCard(c){
           ${safeDesc ? `<div style="font-size:12px;color:var(--text-soft);margin-top:2px;line-height:1.4;">${safeDesc}</div>` : ""}
           ${!isBuiltin ? `<div style="font-size:11px;color:var(--text-faint);margin-top:3px;font-family:var(--font-en),var(--font-cn);">${escapeHtml(c.base_url || "")}</div>` : ""}
         </div>
-        <button class="dset-toggle" type="button" data-conn-toggle="${c.id}" aria-pressed="${c.enabled ? "true" : "false"}"><span></span></button>
+        ${isBuiltin ? `<span style="font-size:11px;color:var(--text-faint);flex:none;">内置</span>` : `<button class="dset-toggle" type="button" data-conn-toggle="${c.id}" aria-pressed="${c.enabled ? "true" : "false"}"><span></span></button>`}
       </div>
       ${!isBuiltin ? `
       <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
