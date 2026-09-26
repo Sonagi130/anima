@@ -1,1 +1,1 @@
-{"version": "v23.4", "note": "记忆列表标题去掉时分秒前缀,只留日期"}
+{"version": "v23.5", "note": "修复 JS 语法错误：变量声明 + async searchMemory；记忆分级筛选+日常编辑"}
