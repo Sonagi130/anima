@@ -3994,7 +3994,7 @@ function connCard(c){
           ${safeDesc ? `<div style="font-size:12px;color:var(--text-soft);margin-top:2px;line-height:1.4;">${safeDesc}</div>` : ""}
           ${!isBuiltin ? `<div style="font-size:11px;color:var(--text-faint);margin-top:3px;font-family:var(--font-en),var(--font-cn);">${escapeHtml(c.base_url || "")}</div>` : ""}
         </div>
-        <label class="dset-toggle" style="flex:none;display:inline-flex;"><input type="checkbox" ${c.enabled ? "checked" : ""} data-conn-toggle="${c.id}" style="position:absolute;opacity:0;pointer-events:none;"><span></span></label>
+        <button class="dset-toggle" type="button" data-conn-toggle="${c.id}" aria-pressed="${c.enabled ? "true" : "false"}"><span></span></button>
       </div>
       ${!isBuiltin ? `
       <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
@@ -4009,10 +4009,11 @@ function renderMcpConns(){
   if (!list) return;
   if (!mcpConns.length){ list.innerHTML = `<div style="color:var(--text-faint);font-size:13px;padding:6px 0;">还没有连接。</div>`; return; }
   list.innerHTML = mcpConns.map(connCard).join("");
-  list.querySelectorAll("[data-conn-toggle]").forEach((cb) => {
-    cb.addEventListener("change", async () => {
-      const id = cb.dataset.connToggle;
-      const on = cb.checked;
+  list.querySelectorAll("[data-conn-toggle]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const id = btn.dataset.connToggle;
+      const on = btn.getAttribute("aria-pressed") !== "true";
+      btn.setAttribute("aria-pressed", String(on));
       try{
         const r = await fetch(`${API_BASE}/app/mcp/connections/${id}`, {
           method: "PATCH",
@@ -4023,7 +4024,7 @@ function renderMcpConns(){
         const d = await r.json();
         showToast(d.connection ? `${d.connection.name} 已${on ? "开启" : "关闭"}` : "已更新");
       }catch(err){
-        cb.checked = !on;
+        btn.setAttribute("aria-pressed", String(!on));
         showToast("切换失败：" + err.message);
       }
     });
