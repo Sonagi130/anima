@@ -2334,6 +2334,24 @@
   .msg-act:active{ background:var(--row-press); transform:scale(.98); }
   .msg-act svg{ width:18px; height:18px; opacity:.82; flex:0 0 auto; }
   .msg-act.danger{ color:#e05a4d; }                       /* 删除(仅本地) */
+  .info-panel{ position:fixed; inset:0; z-index:260; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity .18s; }
+  .info-panel.open{ opacity:1; pointer-events:auto; }
+  .info-scrim{ position:absolute; inset:0; background:rgba(8,10,20,.55); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); }
+  .info-card{ position:relative; width:min(88vw,340px); max-height:80vh; overflow:auto; background:var(--panel-bg,#fff); color:var(--text,#1c2230); border:1px solid var(--hairline,rgba(150,168,182,.2)); border-radius:18px; box-shadow:0 18px 50px rgba(10,15,30,.35); padding:18px 18px 14px; transform:translateY(8px); transition:transform .2s; }
+  .info-panel.open .info-card{ transform:none; }
+  .info-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .info-title{ font-size:15px; font-weight:700; letter-spacing:.2px; }
+  .info-close{ display:flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:50%; border:1px solid var(--hairline,rgba(150,168,182,.2)); background:var(--card-bg,transparent); color:inherit; cursor:pointer; }
+  .info-close svg{ width:16px; height:16px; }
+  .info-rows{ display:flex; flex-direction:column; gap:0; }
+  .info-row{ display:flex; justify-content:space-between; align-items:center; padding:8px 2px; font-size:13px; border-bottom:1px solid var(--hairline,rgba(150,168,182,.12)); }
+  .info-row:last-child{ border-bottom:none; }
+  .info-row .k{ color:var(--text-faint,#6b7280); font-size:12px; }
+  .info-row .v{ font-weight:600; font-variant-numeric:tabular-nums; text-align:right; }
+  .info-row .v.hot{ color:var(--accent,#2b4aff); }
+  .info-row .v.grey{ color:var(--text-faint,#6b7280); font-weight:500; }
+  .info-empty{ padding:22px 8px; text-align:center; color:var(--text-faint,#6b7280); font-size:12.5px; }
+  .info-cost{ font-weight:800; color:var(--accent,#2b4aff); }
 
   /* ── reaction chips (AI poke) ── */
   .row.has-reactions{ flex-direction:column; gap:5px; }
@@ -3158,11 +3176,21 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
       <span>Copy</span>
     </button>
+    <button class="msg-act" type="button" data-act="info" role="menuitem">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M12 11v5"/></svg>
+      <span>Info</span>
+    </button>
     <button class="msg-act danger" type="button" data-act="delete" role="menuitem">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M5 7l1 13a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1l1-13"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg>
       <span>Delete</span>
     </button>
   </div>
+</div>
+
+<!-- token info panel -->
+<div class="info-panel" id="infoPanel" aria-hidden="true">
+  <div class="info-scrim" id="infoScrim"></div>
+  <div class="info-card" id="infoCard"></div>
 </div>
 
 <script>
@@ -7311,6 +7339,13 @@ function applyReaction(ev){
     showToast("已删除");
   }
 
+  function doInfo(){
+    const key = openKey;
+    const msg = (key != null) ? messageByKey.get(msgKey(key)) : null;
+    close();
+    if (!msg) return;
+    showMsgInfo(msg);
+  }
   // 长按检测 —— 用 touch 事件自己计时。不用 pointer:iOS 一识别长按就给页面发 pointercancel,
   // 会把计时器掐掉、让原生选择/复制接管(就是"打架"的根因);touch 不会被这样取消。
   // 原生选择/callout 由 CSS 的 user-select:none / -webkit-touch-callout:none 压住。
@@ -7354,10 +7389,202 @@ function applyReaction(ev){
     if (!act) return;
     if (act.dataset.act === "copy") doCopy();
     else if (act.dataset.act === "delete") doDelete();
+    else if (act.dataset.act === "info") doInfo();
   });
   window.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
   window.addEventListener("resize", close);
   scrollEl.addEventListener("scroll", () => { if (isOpen()) close(); }, { passive:true });
+})();
+
+/* ════════════ token 信息 · 面板 · 窗口统计 ════════════ */
+const TOKEN_PRICE = { in: 1, out: 4, hit: 0.02 };
+function fmtNum(n){
+  n = Number(n) || 0;
+  if (n >= 1e6) return (n / 1e6).toFixed(2) + "M";
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + "K";
+  return String(Math.round(n));
+}
+function usageOf(m){
+  if (!m || !m.meta) return null;
+  const api = m.meta.api;
+  if (api && api.usage && (api.usage.total_tokens || api.usage.prompt_tokens)) return api.usage;
+  const u = m.meta.usage;
+  if (u && (u.total_tokens || u.prompt_tokens)) return u;
+  return null;
+}
+function costOf(usage){
+  if (!usage) return null;
+  const pin = usage.prompt_tokens || 0;
+  const pout = usage.completion_tokens || 0;
+  const phit = usage.prompt_cache_hit_tokens || 0;
+  return (pin * TOKEN_PRICE.in + pout * TOKEN_PRICE.out + phit * TOKEN_PRICE.hit) / 1e6;
+}
+function fmtCost(v){
+  if (v == null) return "—";
+  if (v < 0.0001) return "0.0000 元";
+  return v.toFixed(4) + " 元";
+}
+function fmtTs(ts){
+  if (!ts) return "—";
+  const d = new Date(ts);
+  if (isNaN(d.getTime())) return String(ts);
+  const p = (x) => String(x).padStart(2, "0");
+  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes());
+}
+function infoPanelEls(){
+  return { panel: $("#infoPanel"), scrim: $("#infoScrim"), card: $("#infoCard") };
+}
+function openInfoPanel(html){
+  const { panel, card } = infoPanelEls();
+  if (!panel || !card) return;
+  card.innerHTML = html;
+  panel.classList.add("open");
+  panel.setAttribute("aria-hidden", "false");
+}
+function closeInfoPanel(){
+  const { panel } = infoPanelEls();
+  if (!panel) return;
+  panel.classList.remove("open");
+  panel.setAttribute("aria-hidden", "true");
+}
+(function initInfoPanel(){
+  const { panel, scrim } = infoPanelEls();
+  if (!panel || !scrim) return;
+  scrim.addEventListener("click", closeInfoPanel);
+  panel.addEventListener("click", (e) => {
+    if (e.target.closest("#infoClose")) closeInfoPanel();
+  });
+  window.addEventListener("keydown", (e) => { if (e.key === "Escape") closeInfoPanel(); });
+  window.addEventListener("resize", closeInfoPanel);
+})();
+function infoRow(k, v, cls){
+  return '<div class="info-row"><span class="k">' + k + '</span><span class="v ' + (cls || "") + '">' + (v == null ? "—" : v) + '</span></div>';
+}
+function infoHead(title){
+  return '<div class="info-head"><span class="info-title">' + title + '</span>' +
+    '<button class="info-close" id="infoClose" type="button" aria-label="关闭">' +
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>';
+}
+function showMsgInfo(msg){
+  const usage = usageOf(msg);
+  const who = msg.direction === "out" ? (AI_NAME + " · reply") : (HUMAN_NAME + " · user");
+  const model = (msg.meta && msg.meta.api && msg.meta.api.model) || "—";
+  if (!usage){
+    openInfoPanel(
+      infoHead("聊天信息") +
+      infoRow("方向", who) +
+      infoRow("时间", fmtTs(msg.ts)) +
+      '<div class="info-empty">这条没有 token 数据<br>（人类消息或早期记录）</div>'
+    );
+    return;
+  }
+  const cost = costOf(usage);
+  openInfoPanel(
+    infoHead("聊天信息") +
+    infoRow("方向", who) +
+    infoRow("时间", fmtTs(msg.ts)) +
+    infoRow("模型", model) +
+    infoRow("输入 tokens", fmtNum(usage.prompt_tokens), "hot") +
+    infoRow("输出 tokens", fmtNum(usage.completion_tokens), "hot") +
+    infoRow("缓存命中", fmtNum(usage.prompt_cache_hit_tokens)) +
+    infoRow("缓存未命中", fmtNum(usage.prompt_cache_miss_tokens)) +
+    infoRow("总计 tokens", fmtNum(usage.total_tokens), "hot") +
+    infoRow("价格估算", '<span class="info-cost">' + fmtCost(cost) + "</span>")
+  );
+}
+function sessionIdTs(sid){
+  if (!sid) return null;
+  const m = String(sid).match(/(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})/);
+  if (!m) return null;
+  return m[1] + "-" + m[2] + "-" + m[3] + " " + m[4] + ":" + m[5] + ":" + m[6];
+}
+function showSessionInfo(s){
+  const sid = (s && s.id) || "";
+  const title = (s && s.title) || "新对话";
+  openInfoPanel(infoHead("窗口信息") + '<div class="info-empty">统计中…</div>');
+  const url = API_BASE + "/app/history?session_id=" + encodeURIComponent(sid) + "&limit=500";
+  fetch(url, { headers: authHeaders() })
+    .then((r) => r.json())
+    .then((d) => {
+      const list = Array.isArray(d) ? d : (Array.isArray(d.messages) ? d.messages : []);
+      const aiMsgs = list.filter((m) => m.direction === "out");
+      let pin = 0, pout = 0, phit = 0, pmiss = 0, ptot = 0, cost = 0, have = false;
+      aiMsgs.forEach((m) => {
+        const u = usageOf(m);
+        if (!u) return;
+        have = true;
+        pin += u.prompt_tokens || 0;
+        pout += u.completion_tokens || 0;
+        phit += u.prompt_cache_hit_tokens || 0;
+        pmiss += u.prompt_cache_miss_tokens || 0;
+        ptot += u.total_tokens || 0;
+        cost += costOf(u) || 0;
+      });
+      if (!have){
+        openInfoPanel(
+          infoHead("窗口信息") +
+          infoRow("窗口", title) +
+          infoRow("开启时间", fmtTs(sessionIdTs(sid))) +
+          infoRow("消息条数", list.length) +
+          infoRow("AI 回复轮数", aiMsgs.length) +
+          '<div class="info-empty">这个窗口还没有 token 数据<br>（发过消息后才会记账）</div>'
+        );
+        return;
+      }
+      openInfoPanel(
+        infoHead("窗口信息") +
+        infoRow("窗口", title) +
+        infoRow("开启时间", fmtTs(sessionIdTs(sid))) +
+        infoRow("消息条数", list.length) +
+        infoRow("AI 回复轮数", aiMsgs.length) +
+        infoRow("输入 tokens", fmtNum(pin), "hot") +
+        infoRow("输出 tokens", fmtNum(pout), "hot") +
+        infoRow("缓存命中", fmtNum(phit)) +
+        infoRow("缓存未命中", fmtNum(pmiss)) +
+        infoRow("总计 tokens", fmtNum(ptot), "hot") +
+        infoRow("价格估算", '<span class="info-cost">' + fmtCost(cost) + "</span>")
+      );
+    })
+    .catch(() => {
+      openInfoPanel(infoHead("窗口信息") + '<div class="info-empty">统计失败，稍后再试</div>');
+    });
+}
+(function initSessionLongPress(){
+  const list = sessionList;
+  if (!list) return;
+  let timer = null, rowEl = null, sx = 0, sy = 0;
+  function clear(){ if (timer){ clearTimeout(timer); timer = null; } rowEl = null; }
+  list.addEventListener("touchstart", (e) => {
+    if (e.touches.length !== 1) return;
+    const row = e.target.closest("[data-session]");
+    if (!row) return;
+    const t = e.touches[0]; sx = t.clientX; sy = t.clientY;
+    rowEl = row;
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      timer = null;
+      const sid = rowEl ? rowEl.dataset.session : "";
+      const s = apiSessions.find((x) => String(x.id) === String(sid));
+      if (rowEl){ try{ if (navigator.vibrate && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) navigator.vibrate(12); }catch(_){} }
+      showSessionInfo(s || { id: sid });
+    }, 450);
+  }, { passive: true });
+  list.addEventListener("touchmove", (e) => {
+    if (!rowEl || !e.touches.length) return;
+    const t = e.touches[0];
+    if (Math.abs(t.clientX - sx) > 10 || Math.abs(t.clientY - sy) > 10) clear();
+  }, { passive: true });
+  const end = () => { if (timer){ clearTimeout(timer); timer = null; rowEl = null; } };
+  list.addEventListener("touchend", end);
+  list.addEventListener("touchcancel", end);
+  list.addEventListener("contextmenu", (e) => {
+    const row = e.target.closest("[data-session]");
+    if (!row) return;
+    e.preventDefault();
+    const sid = row.dataset.session || "";
+    const s = apiSessions.find((x) => String(x.id) === String(sid));
+    showSessionInfo(s || { id: sid });
+  });
 })();
 
 /* ════════════ 滚动 ════════════ */
