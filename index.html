@@ -3982,7 +3982,7 @@ async function loadMemoryCatalog(){
         </div>
         <div style="font-size:14.5px;line-height:1.5;color:var(--text);font-weight:500;">${esc(it.title)}</div>
         <div style="font-size:11.5px;color:var(--text-faint);margin-top:5px;">${esc(it.domain)} · 权重 ${esc(it.weight)}</div>
-        ${it.tier === "日常" ? `<button class="mem-edit-btn" data-id="${esc(it.id)}" data-title="${esc(it.title)}" type="button" style="margin-top:10px;background:var(--card-bg);border:1px solid var(--card-line);border-radius:10px;padding:6px 12px;font-size:12.5px;color:var(--text);cursor:pointer;">编辑</button>` : ""}
+        ${it.tier === "日常" ? `<span style="display:flex;gap:8px;margin-top:10px;"><button class="mem-edit-btn" data-id="${esc(it.id)}" data-title="${esc(it.title)}" type="button" style="background:var(--card-bg);border:1px solid var(--card-line);border-radius:10px;padding:6px 12px;font-size:12.5px;color:var(--text);cursor:pointer;">编辑</button><button class="mem-del-btn" data-id="${esc(it.id)}" data-title="${esc(it.title)}" type="button" style="background:var(--card-bg);border:1px solid var(--card-line);border-radius:10px;padding:6px 12px;font-size:12.5px;color:#e06c6c;cursor:pointer;">删除</button></span>` : ""}
       </div>`).join("");
     // 点击条目 → 搜索拉全文
     memoryList.querySelectorAll(".mem-item").forEach(el => {
@@ -3998,6 +3998,9 @@ async function loadMemoryCatalog(){
     });
     memoryList.querySelectorAll(".mem-edit-btn").forEach(btn => {
       btn.addEventListener("click", () => editMemory(btn.dataset.id, btn.dataset.title));
+    });
+    memoryList.querySelectorAll(".mem-del-btn").forEach(btn => {
+      btn.addEventListener("click", () => deleteMemory(btn.dataset.id, btn.dataset.title));
     });
   }catch(e){
     memoryStatus.textContent = "加载失败：" + e.message;
@@ -4040,6 +4043,25 @@ async function editMemory(bucketId, title){
     loadMemoryCatalog();
   } else {
     alert((j.error || "保存失败") + (j.message ? "：" + j.message : ""));
+  }
+}
+async function deleteMemory(bucketId, title){
+  if (!bucketId) { alert("这条记忆没有 id，删不了。"); return; }
+  if (!confirm(`确定删除「${title}」？
+
+删除后它移入档案，不会参与日常召回，但还能恢复。塔尖/24线/底座不受影响。`)) return;
+  const r = await fetch(`${API_BASE}/app/memory`, {
+    method: "DELETE",
+    headers: Object.assign({"Content-Type": "application/json"}, authHeaders()),
+    body: JSON.stringify({ bucket_id: bucketId }),
+    cache: "no-store"
+  });
+  const j = await r.json();
+  if (j.ok){
+    alert("已删除。它进了档案，需要的话还能找回来。");
+    loadMemoryCatalog();
+  } else {
+    alert((j.error || "删除失败") + (j.message ? "：" + j.message : ""));
   }
 }
 async function searchMemory(q){
