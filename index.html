@@ -3458,6 +3458,7 @@ if (deskTabbar) deskTabbar.addEventListener("click", (e) => {
   deskTabbar.querySelectorAll(".tab-item").forEach(t => t.classList.toggle("active", t === tab));
   if (tab.dataset.dtab === "chat"){ closeDesk(); _chatFromDesk = true; _navDropTo("desk"); _navPush("chat"); }
   else if (tab.dataset.dtab === "desk"){ /* 已在 Desk */ }
+  else if (tab.dataset.dtab === "memory"){ closeDesk(); openMemoryPanel(); }
   else showToast("即将开放");
 });
 if (deskPanel) deskPanel.addEventListener("click", (e) => {
@@ -4325,6 +4326,7 @@ if (menuPanel){
       if (item.dataset.menu === "chat") closeMenu();       // back to chat
       else if (item.dataset.menu === "night"){ closeMenu(); openNightPanel(); }  // 顾淮的夜晚
       else if (item.dataset.menu === "album") location.assign("album.html");  // album shell (wire your own backend)
+      else if (item.dataset.menu === "memory"){ closeMenu(); openMemoryPanel(); }  // 记忆库
       else showToast("即将开放");                           // placeholder items
       return;
     }
