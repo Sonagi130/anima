@@ -2940,6 +2940,18 @@
           <input id="memorySearch" type="text" placeholder="搜记忆…" style="flex:1;background:var(--card-bg);border:1px solid var(--card-line);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--text);">
           <button id="memorySearchGo" type="button" style="background:var(--accent);border:0;border-radius:12px;padding:10px 16px;font-size:14px;color:#fff;flex:none;">搜</button>
         </div>
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <button id="memTabOB" type="button" style="flex:1;background:var(--accent);color:#fff;border:0;border-radius:10px;padding:8px 0;font-size:13px;font-weight:600;cursor:pointer;">记忆库</button>
+          <button id="memTabLedger" type="button" style="flex:1;background:var(--card-bg);color:var(--text);border:1px solid var(--card-line);border-radius:10px;padding:8px 0;font-size:13px;font-weight:600;cursor:pointer;">账本</button>
+        </div>
+        <div id="ledgerArea" style="display:none;">
+          <div style="display:flex;gap:8px;margin-bottom:10px;">
+            <input id="ledgerInput" type="text" placeholder="记一下…（说'记一下'才算数）" style="flex:1;background:var(--card-bg);border:1px solid var(--card-line);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--text);">
+            <button id="ledgerAdd" type="button" style="background:var(--accent);border:0;border-radius:12px;padding:0 16px;font-size:13px;color:#fff;font-weight:600;">记</button>
+          </div>
+          <div id="ledgerList" style="display:flex;flex-direction:column;gap:10px;margin-bottom:8px;"></div>
+          <div style="font-size:11px;color:var(--text-faint);text-align:center;padding:4px 0;">账本只留最近 7 天，超期自动清（OB 已收进正稿的才清）</div>
+        </div>
         <div id="memoryTierBar" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
           <button class="mem-tier-btn active" data-tier="" type="button" style="background:var(--accent);color:#fff;border:0;border-radius:10px;padding:6px 12px;font-size:12.5px;cursor:pointer;">全部</button>
           <button class="mem-tier-btn" data-tier="塔尖" type="button" style="background:var(--card-bg);color:var(--text);border:1px solid var(--card-line);border-radius:10px;padding:6px 12px;font-size:12.5px;cursor:pointer;">塔尖</button>
@@ -3936,8 +3948,9 @@ function openMemoryPanel(){
   clearTimeout(memoryCloseTimer);
   memoryPanel.classList.remove("hidden");
   requestAnimationFrame(() => requestAnimationFrame(() => memoryPanel.classList.add("open")));
-  bindMemoryTierBar();
-  loadMemoryCatalog();
+  const ob = document.getElementById("memTabOB"), lg = document.getElementById("memTabLedger");
+  if (ob && lg && !ob.dataset.bound){ ob.dataset.bound = "1"; ob.onclick = () => switchMemTab(false); lg.onclick = () => switchMemTab(true); }
+  if (ledgerTabOn) loadLedger(); else { bindMemoryTierBar(); loadMemoryCatalog(); }
 }
 function closeMemoryPanel(){
   if (!memoryPanel) return;
@@ -4006,7 +4019,76 @@ async function loadMemoryCatalog(){
     memoryStatus.textContent = "加载失败：" + e.message;
   }
 }
-async function bindMemoryTierBar(){
+let ledgerEditId = null;
+let ledgerTabOn = false;
+function switchMemTab(onLedger){
+  ledgerTabOn = onLedger;
+  const ob = document.getElementById("memTabOB"), lg = document.getElementById("memTabLedger"),
+        bar = document.getElementById("memoryTierBar"), area = document.getElementById("ledgerArea");
+  if (!ob || !lg) return;
+  ob.style.background = onLedger ? "var(--card-bg)" : "var(--accent)";
+  ob.style.color = onLedger ? "var(--text)" : "#fff";
+  ob.style.border = onLedger ? "1px solid var(--card-line)" : "0";
+  lg.style.background = onLedger ? "var(--accent)" : "var(--card-bg)";
+  lg.style.color = onLedger ? "#fff" : "var(--text)";
+  lg.style.border = onLedger ? "0" : "1px solid var(--card-line)";
+  if (bar) bar.style.display = onLedger ? "none" : "flex";
+  if (area) area.style.display = onLedger ? "block" : "none";
+  if (onLedger) loadLedger();
+  else loadMemoryCatalog();
+}
+async function loadLedger(){
+  const list = document.getElementById("ledgerList");
+  if (!list) return;
+  try{
+    const r = await fetch(API_BASE + "/app/ledger", { headers: authHeaders(), cache: "no-store" });
+    if (!r.ok) throw new Error("ledger " + r.status);
+    const d = await r.json();
+    if (!d.ok || !d.notes) { list.innerHTML = '<div style="text-align:center;color:var(--text-faint);font-size:13px;padding:18px 0;">账本读不到。</div>'; return; }
+    const notes = d.notes || [];
+    if (!notes.length) { list.innerHTML = '<div style="text-align:center;color:var(--text-faint);font-size:13px;padding:18px 0;">账本空着。想记什么说一句"记一下"。</div>'; return; }
+    list.innerHTML = notes.map(n => `
+      <div style="background:var(--card-bg);border:1px solid var(--card-line);border-radius:14px;padding:12px 14px;">
+        <div style="font-size:11px;color:var(--text-faint);margin-bottom:5px;display:flex;justify-content:space-between;align-items:center;"><span>${esc((n.ts||"").slice(0,16).replace("T"," "))}</span><span style="color:var(--accent);font-weight:600;">草稿</span></div>
+        <div style="font-size:14px;color:var(--text);line-height:1.5;">${esc(n.note)}</div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button onclick="editLedger(${n.id})" type="button" style="flex:1;padding:7px 0;font-size:12px;font-weight:600;border-radius:10px;border:1px solid var(--card-line);background:var(--card-bg);color:var(--text);cursor:pointer;">编辑</button>
+          <button onclick="delLedger(${n.id})" type="button" style="flex:1;padding:7px 0;font-size:12px;font-weight:600;border-radius:10px;border:1px solid rgba(255,107,122,.3);background:var(--card-bg);color:#ff6b7a;cursor:pointer;">删除</button>
+        </div>
+      </div>`).join("");
+  } catch(e){
+    list.innerHTML = '<div style="text-align:center;color:var(--text-faint);font-size:13px;padding:18px 0;">账本加载失败。</div>';
+  }
+}
+async function addLedger(){
+  const inp = document.getElementById("ledgerInput"); if (!inp) return;
+  const v = inp.value.trim(); if (!v) return;
+  try{
+    const body = ledgerEditId ? { id: ledgerEditId, note: v } : { note: v };
+    const r = await fetch(API_BASE + "/app/ledger", { method:"POST", headers: Object.assign({"Content-Type":"application/json"}, authHeaders()), body: JSON.stringify(body) });
+    if (!r.ok) throw new Error("ledger post " + r.status);
+    ledgerEditId = null; inp.value = ""; inp.placeholder = "记一下…（说'记一下'才算数）";
+    loadLedger();
+  } catch(e){ alert("记账失败：" + e.message); }
+}
+async function editLedger(id){
+  const inp = document.getElementById("ledgerInput"); if (!inp) return;
+  try{
+    const r = await fetch(API_BASE + "/app/ledger", { headers: authHeaders(), cache: "no-store" });
+    const d = await r.json();
+    const n = (d.notes||[]).find(x => x.id === id); if (!n) return;
+    inp.value = n.note; inp.focus(); ledgerEditId = id; inp.placeholder = "改完点'记'（当前编辑中）";
+  } catch(e){}
+}
+async function delLedger(id){
+  if (!confirm("删掉这条账本？删了不恢复。")) return;
+  try{
+    const r = await fetch(API_BASE + "/app/ledger", { method:"DELETE", headers: Object.assign({"Content-Type":"application/json"}, authHeaders()), body: JSON.stringify({ id }) });
+    if (!r.ok) throw new Error("ledger del " + r.status);
+    loadLedger();
+  } catch(e){ alert("删除失败：" + e.message); }
+}
+function bindMemoryTierBar(){
   const bar = $("#memoryTierBar");
   if (!bar) return;
   bar.querySelectorAll(".mem-tier-btn").forEach(btn => {
